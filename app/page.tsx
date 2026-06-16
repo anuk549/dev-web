@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Image from "next/image";
+import { useMemo, useState } from "react";
 
 const DEV_PHONE = "94771234567";
-const STEPS = 9; // 1 (Intro Welcome) + 8 (Configurator Steps)
+const STEPS = 9;
+
+type CrudKey = "create" | "read" | "update" | "delete" | "search";
 
 interface FieldSpec {
   label: string;
@@ -20,17 +23,87 @@ interface PageSpec {
   fields: FieldSpec[];
 }
 
+interface RelationSpec {
+  sourceTable: string;
+  relationType: string;
+  targetTable: string;
+}
+
+const stepItems = [
+  { idx: 1, label: "Frontend", icon: "ti-layout-dashboard" },
+  { idx: 2, label: "Language", icon: "ti-code" },
+  { idx: 3, label: "Backend", icon: "ti-server" },
+  { idx: 4, label: "Database", icon: "ti-database" },
+  { idx: 5, label: "Features", icon: "ti-shield-check" },
+  { idx: 6, label: "Schema", icon: "ti-table" },
+  { idx: 7, label: "Relations", icon: "ti-git-fork" },
+  { idx: 8, label: "Contact", icon: "ti-brand-whatsapp" },
+];
+
+const fieldTypes = [
+  "String",
+  "Integer",
+  "Float",
+  "Date",
+  "Boolean",
+  "Image/File",
+  "Email",
+  "Phone",
+  "Text",
+];
+
+const initialPages: PageSpec[] = [
+  {
+    topic: "Students",
+    create: true,
+    read: true,
+    update: true,
+    delete: true,
+    search: false,
+    fields: [
+      { label: "id", type: "Integer" },
+      { label: "name", type: "String" },
+      { label: "email", type: "Email" },
+    ],
+  },
+];
+
+const feedbackItems = [
+  {
+    name: "නිපුන් දිල්ෂාන්",
+    role: "IT Undergraduate",
+    feedback:
+      "මගේ web project එක deadline එකට කලින් complete කරලා දුන්නා. UI එක clean, database part එකත් හොඳට වැඩ කළා.",
+  },
+  {
+    name: "කවීෂා පෙරේරා",
+    role: "Software Engineering",
+    feedback:
+      "Assignment එකේ requirements explain කරලා, අවශ්‍ය features ටික professional විදිහට build කරලා දුන්නා. Communication එකත් හොඳයි.",
+  },
+  {
+    name: "රවිඳු මධුෂාන්",
+    role: "Final Year Student",
+    feedback:
+      "Login system, admin dashboard, database tables හැම එකම demo එකට ready විදිහට හදලා දුන්නා. Presentation එකට confidence එකක් ආවා.",
+  },
+  {
+    name: "Amaya Silva",
+    role: "Business Management",
+    feedback:
+      "Dev+ turned my idea into a polished web app. The quote flow was clear, delivery was fast, and the final UI looked professional.",
+  },
+];
+
 export default function Home() {
   const [currentStep, setCurrentStep] = useState(0);
   const [maxStepReached, setMaxStepReached] = useState(0);
 
-  // Stack state
   const [frontend, setFrontend] = useState<string | null>(null);
   const [language, setLanguage] = useState<string | null>(null);
   const [backend, setBackend] = useState<string | null>(null);
   const [database, setDatabase] = useState<string | null>(null);
 
-  // Features state
   const [login, setLogin] = useState(true);
   const [encrypt, setEncrypt] = useState(true);
   const [jwt, setJwt] = useState(false);
@@ -39,238 +112,137 @@ export default function Home() {
   const [upload, setUpload] = useState(false);
   const [search, setSearch] = useState(false);
 
-  // Pages & Fields state
-  const [pages, setPages] = useState<PageSpec[]>([
-    {
-      topic: "Students",
-      create: true,
-      read: true,
-      update: true,
-      delete: true,
-      search: false,
-      fields: [
-        { label: "id", type: "Integer" },
-        { label: "name", type: "String" },
-        { label: "email", type: "Email" },
-      ],
-    },
-  ]);
+  const [pages, setPages] = useState<PageSpec[]>(initialPages);
   const [activePageIdx, setActivePageIdx] = useState(0);
 
-  // DB Relations state
   const [fk, setFk] = useState(false);
-  const [fkDesc, setFkDesc] = useState("");
-  const [relations, setRelations] = useState<{ sourceTable: string; relationType: string; targetTable: string }[]>([]);
-  const [sourceTable, setSourceTable] = useState("");
+  const [relations, setRelations] = useState<RelationSpec[]>([]);
+  const [sourceTable, setSourceTable] = useState("Students");
   const [relationType, setRelationType] = useState("Has Many (1:N)");
-  const [targetTable, setTargetTable] = useState("");
+  const [targetTable, setTargetTable] = useState("Students");
 
-  // Contact details state
   const [clientName, setClientName] = useState("");
   const [clientUni, setClientUni] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientWa, setClientWa] = useState("");
   const [clientDesc, setClientDesc] = useState("");
 
-  // UI Feedback state
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [successMsgVisible, setSuccessMsgVisible] = useState(false);
-
-  // Compilation Simulator state
   const [compilationStep, setCompilationStep] = useState<number | null>(null);
   const [compilationLogs, setCompilationLogs] = useState<string[]>([]);
   const [compilationProgress, setCompilationProgress] = useState(0);
-
-  // Mobile drawer state
   const [summaryDrawerOpen, setSummaryDrawerOpen] = useState(false);
 
-  // Furthest step reached for timeline safety
-  useEffect(() => {
-    if (currentStep > maxStepReached) {
-      setMaxStepReached(currentStep);
-    }
-  }, [currentStep, maxStepReached]);
+  const clampedActivePageIdx = Math.min(activePageIdx, Math.max(0, pages.length - 1));
+  const activePage = pages[clampedActivePageIdx] || null;
+  const fkDesc = relations
+    .map((r) => `${r.sourceTable} --(${r.relationType})--> ${r.targetTable}`)
+    .join(", ");
 
-  // Sync relation builder select dropdown defaults
-  useEffect(() => {
-    if (pages.length > 0) {
-      if (!sourceTable || !pages.some((p) => p.topic === sourceTable)) {
-        setSourceTable(pages[0].topic);
-      }
-      if (!targetTable || !pages.some((p) => p.topic === targetTable)) {
-        setTargetTable(pages[Math.min(1, pages.length - 1)].topic);
-      }
-    }
-  }, [pages, sourceTable, targetTable]);
+  const goToStep = (step: number) => {
+    setCurrentStep(step);
+    setMaxStepReached((prev) => Math.max(prev, step));
+  };
 
-  // Maintain fkDesc backward compatibility from interactive relationships list
-  useEffect(() => {
-    const desc = relations
-      .map((r) => `${r.sourceTable} ──(${r.relationType})──> ${r.targetTable}`)
-      .join(", ");
-    setFkDesc(desc);
-  }, [relations]);
+  const quote = useMemo(() => {
+    const getPagePrice = (p: PageSpec) => {
+      let price = 0;
+      if (p.read) price += 500;
+      if (p.create) price += 400;
+      if (p.update) price += 400;
+      if (p.delete) price += 400;
+      if (p.search) price += 300;
+      return price;
+    };
 
-  const fieldTypes = [
-    "String",
-    "Integer",
-    "Float",
-    "Date",
-    "Boolean",
-    "Image/File",
-    "Email",
-    "Phone",
-    "Text",
-  ];
-
-  // Auto-correct activePageIdx if pages list size shrinks
-  useEffect(() => {
-    if (activePageIdx >= pages.length) {
-      setActivePageIdx(Math.max(0, pages.length - 1));
-    }
-  }, [pages.length, activePageIdx]);
-
-  function getPagePrice(p: PageSpec) {
-    let price = 0;
-    if (p.read) price += 500;
-    if (p.create) price += 400;
-    if (p.update) price += 400;
-    if (p.delete) price += 400;
-    if (p.search) price += 300;
-    return price;
-  }
-
-  // Cost and Days calculations
-  const calculateQuote = () => {
     const breakdown: { label: string; val: number }[] = [];
     let total = 0;
-
-    const pageTotal = pages.reduce((s, p) => s + getPagePrice(p), 0);
+    const pageTotal = pages.reduce((sum, p) => sum + getPagePrice(p), 0);
     if (pageTotal > 0) {
-      breakdown.push({ label: `${pages.length} Database Schema Tables`, val: pageTotal });
+      breakdown.push({ label: `${pages.length} database table model${pages.length > 1 ? "s" : ""}`, val: pageTotal });
       total += pageTotal;
     }
 
-    if (login) {
-      breakdown.push({ label: "User Authentication Suite", val: 500 });
-      total += 500;
-    }
-    if (encrypt) {
-      breakdown.push({ label: "Password Cryptography (bcrypt)", val: 200 });
-      total += 200;
-    }
-    if (jwt) {
-      breakdown.push({ label: "Stateless Auth Tokens (JWT)", val: 300 });
-      total += 300;
-    }
-    if (admin) {
-      breakdown.push({ label: "Admin Console Panel", val: 1000 });
-      total += 1000;
-    }
-    if (email) {
-      breakdown.push({ label: "SMTP / Automated Email integration", val: 500 });
-      total += 500;
-    }
-    if (upload) {
-      breakdown.push({ label: "Secure Cloud File Uploads", val: 500 });
-      total += 500;
-    }
-    if (search) {
-      breakdown.push({ label: "High-performance Search Engine", val: 500 });
-      total += 500;
-    }
-    if (fk) {
-      breakdown.push({ label: "Relational Table Foreign Keys", val: 500 });
-      total += 500;
-    }
+    [
+      [login, "User authentication suite", 500],
+      [encrypt, "Password encryption", 200],
+      [jwt, "JWT token security", 300],
+      [admin, "Admin dashboard", 1000],
+      [email, "Automated email setup", 500],
+      [upload, "Secure file uploads", 500],
+      [search, "Application search", 500],
+      [fk, "Database relationships", 500],
+    ].forEach(([enabled, label, val]) => {
+      if (enabled) {
+        breakdown.push({ label: label as string, val: val as number });
+        total += val as number;
+      }
+    });
 
-    // Days calculation
-    let calculatedDays = 0;
+    let days = 0;
     pages.forEach((p) => {
-      if (p.read) calculatedDays += 1;
-      if (p.create || p.update || p.delete) calculatedDays += 1;
-      if (p.search) calculatedDays += 1;
+      if (p.read) days += 1;
+      if (p.create || p.update || p.delete) days += 1;
+      if (p.search) days += 1;
     });
+    if (admin) days += 2;
+    if (jwt || email) days += 1;
+    if (fk) days += 1;
 
-    if (admin) calculatedDays += 2;
-    if (jwt || email) calculatedDays += 1;
-    if (fk) calculatedDays += 1;
-    calculatedDays = Math.max(2, calculatedDays);
+    return { breakdown, total, days: Math.max(2, days) };
+  }, [admin, email, encrypt, fk, jwt, login, pages, search, upload]);
 
-    return { breakdown, total, days: calculatedDays };
+  const modules = [
+    { label: "Auth", active: login, color: "sky" },
+    { label: "Bcrypt", active: encrypt, color: "emerald" },
+    { label: "JWT", active: jwt, color: "indigo" },
+    { label: "Admin", active: admin, color: "amber" },
+    { label: "Email", active: email, color: "rose" },
+    { label: "Uploads", active: upload, color: "teal" },
+    { label: "Search", active: search, color: "violet" },
+  ].filter((item) => item.active);
+
+  const selectedStack = [frontend, language, backend, database].filter(Boolean).join(" / ");
+  const progressPercent = Math.round((Math.max(currentStep, 1) / (STEPS - 1)) * 100);
+
+  const validateStep = (step: number) => {
+    if (step === 1 && !frontend) return "Choose a frontend framework to continue.";
+    if (step === 2 && !language) return "Choose a programming language to continue.";
+    if (step === 3 && !backend) return "Choose a backend option to continue.";
+    if (step === 4 && !database) return "Choose a database engine to continue.";
+    if (step === 8) {
+      if (!clientName.trim()) return "Please enter your name.";
+      if (!clientEmail.trim()) return "Please enter your email.";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail.trim())) return "Please enter a valid email address.";
+    }
+    return null;
   };
 
-  const { breakdown, total, days } = calculateQuote();
-
-  // Pages & Fields schema operations
-  const handlePageTopicChange = (idx: number, topic: string) => {
-    setPages((prev) => {
-      const copy = [...prev];
-      copy[idx] = { ...copy[idx], topic };
-      return copy;
-    });
+  const handleNext = () => {
+    setValidationError(null);
+    const error = validateStep(currentStep);
+    if (error) {
+      setValidationError(error);
+      return;
+    }
+    if (currentStep < STEPS - 1) {
+      const nextStep = currentStep + 1;
+      goToStep(nextStep);
+      return;
+    }
+    triggerQuoteGeneration();
   };
 
-  const handleCrudToggle = (
-    pageIdx: number,
-    key: "create" | "read" | "update" | "delete" | "search"
-  ) => {
+  const handleBack = () => {
+    setValidationError(null);
+    if (currentStep > 0) setCurrentStep((prev) => prev - 1);
+  };
+
+  const handleCrudToggle = (pageIdx: number, key: CrudKey) => {
     setPages((prev) => {
       const copy = [...prev];
       copy[pageIdx] = { ...copy[pageIdx], [key]: !copy[pageIdx][key] };
-      return copy;
-    });
-  };
-
-  const handleAddField = (pageIdx: number) => {
-    setPages((prev) => {
-      const copy = [...prev];
-      copy[pageIdx] = {
-        ...copy[pageIdx],
-        fields: [...copy[pageIdx].fields, { label: "", type: "String" }],
-      };
-      return copy;
-    });
-  };
-
-  const handleRemoveField = (pageIdx: number, fieldIdx: number) => {
-    setPages((prev) => {
-      const copy = [...prev];
-      const fieldsCopy = [...copy[pageIdx].fields];
-      fieldsCopy.splice(fieldIdx, 1);
-      copy[pageIdx] = {
-        ...copy[pageIdx],
-        fields: fieldsCopy,
-      };
-      return copy;
-    });
-  };
-
-  const handleFieldLabelChange = (
-    pageIdx: number,
-    fieldIdx: number,
-    label: string
-  ) => {
-    setPages((prev) => {
-      const copy = [...prev];
-      const fieldsCopy = [...copy[pageIdx].fields];
-      fieldsCopy[fieldIdx] = { ...fieldsCopy[fieldIdx], label };
-      copy[pageIdx] = { ...copy[pageIdx], fields: fieldsCopy };
-      return copy;
-    });
-  };
-
-  const handleFieldTypeChange = (
-    pageIdx: number,
-    fieldIdx: number,
-    type: string
-  ) => {
-    setPages((prev) => {
-      const copy = [...prev];
-      const fieldsCopy = [...copy[pageIdx].fields];
-      fieldsCopy[fieldIdx] = { ...fieldsCopy[fieldIdx], type };
-      copy[pageIdx] = { ...copy[pageIdx], fields: fieldsCopy };
       return copy;
     });
   };
@@ -291,71 +263,66 @@ export default function Home() {
     setActivePageIdx(pages.length);
   };
 
-  const handleRemovePage = (idx: number, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleRemovePage = (idx: number, event: React.MouseEvent) => {
+    event.stopPropagation();
     if (pages.length <= 1) return;
+    setPages((prev) => prev.filter((_, pageIdx) => pageIdx !== idx));
+    setActivePageIdx((prev) => {
+      if (prev === idx) return Math.max(0, idx - 1);
+      if (prev > idx) return prev - 1;
+      return prev;
+    });
+  };
+
+  const updatePage = (idx: number, patch: Partial<PageSpec>) => {
     setPages((prev) => {
       const copy = [...prev];
-      copy.splice(idx, 1);
+      copy[idx] = { ...copy[idx], ...patch };
       return copy;
     });
-    setActivePageIdx((prev) => Math.max(0, prev - 1));
   };
 
-  const validateStep = (step: number) => {
-    if (step === 1 && !frontend) return "Please select a frontend framework.";
-    if (step === 2 && !language) return "Please select a language.";
-    if (step === 3 && !backend) return "Please select a backend framework.";
-    if (step === 4 && !database) return "Please select a database.";
-    if (step === 8) {
-      if (!clientName.trim()) return "Please enter your name.";
-      if (!clientEmail.trim()) return "Please enter your email.";
-    }
-    return null;
+  const updateField = (pageIdx: number, fieldIdx: number, patch: Partial<FieldSpec>) => {
+    setPages((prev) => {
+      const copy = [...prev];
+      const fields = [...copy[pageIdx].fields];
+      fields[fieldIdx] = { ...fields[fieldIdx], ...patch };
+      copy[pageIdx] = { ...copy[pageIdx], fields };
+      return copy;
+    });
   };
 
-  const handleNext = () => {
-    setValidationError(null);
-    const err = validateStep(currentStep);
-    if (err) {
-      setValidationError(err);
-      return;
-    }
-
-    if (currentStep < STEPS - 1) {
-      setCurrentStep((prev) => prev + 1);
-    } else {
-      triggerQuoteGeneration();
-    }
+  const handleAddField = (pageIdx: number) => {
+    setPages((prev) => {
+      const copy = [...prev];
+      copy[pageIdx] = {
+        ...copy[pageIdx],
+        fields: [...copy[pageIdx].fields, { label: "", type: "String" }],
+      };
+      return copy;
+    });
   };
 
-  const handleBack = () => {
-    setValidationError(null);
-    if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
-    }
+  const handleRemoveField = (pageIdx: number, fieldIdx: number) => {
+    setPages((prev) => {
+      const copy = [...prev];
+      copy[pageIdx] = {
+        ...copy[pageIdx],
+        fields: copy[pageIdx].fields.filter((_, idx) => idx !== fieldIdx),
+      };
+      return copy;
+    });
   };
 
   const getWhatsAppMessage = () => {
     const pagesText = pages
-      .map((p, i) => {
-        const ops = [
-          p.create && "CREATE",
-          p.read && "READ",
-          p.update && "UPDATE",
-          p.delete && "DELETE",
-          p.search && "SEARCH",
-        ]
-          .filter(Boolean)
+      .map((p, idx) => {
+        const ops = (["create", "read", "update", "delete", "search"] as CrudKey[])
+          .filter((key) => p[key])
+          .map((key) => key.toUpperCase())
           .join("/");
-
-        const fieldsList = p.fields
-          .map((f) => `${f.label || "unnamed"}: ${f.type}`)
-          .join(", ");
-
-        return `Page ${i + 1} (${p.topic || "Unnamed"}) [${ops}] — Fields: [${
-          fieldsList || "No fields configured"
-        }]`;
+        const fieldsList = p.fields.map((f) => `${f.label || "unnamed"}: ${f.type}`).join(", ");
+        return `Page ${idx + 1} (${p.topic || "Unnamed"}) [${ops}] - Fields: [${fieldsList || "No fields configured"}]`;
       })
       .join("\n- ");
 
@@ -364,38 +331,34 @@ export default function Home() {
       encrypt && "Password Encryption",
       jwt && "JWT Auth",
       admin && "Admin Dashboard",
-    ]
-      .filter(Boolean)
-      .join(", ") || "None";
+    ].filter(Boolean).join(", ") || "None";
+
     const extrasList = [
       email && "Email Setup",
       upload && "File Upload",
       search && "Search",
       fk && "FK/PK Relations",
-    ]
-      .filter(Boolean)
-      .join(", ") || "None";
+    ].filter(Boolean).join(", ") || "None";
 
     return (
-      `Hi Dev+! 👋\n\nI just configured my project:\n\n` +
-      `👤 Name: ${clientName}\n` +
-      `🎓 Uni/Course: ${clientUni || "N/A"}\n` +
-      `📧 Email: ${clientEmail}\n` +
-      `💬 WhatsApp: ${clientWa || "N/A"}\n\n` +
-      `🛠️ Tech Stack:\n` +
-      `- Frontend: ${frontend}\n` +
-      `- Language: ${language}\n` +
-      `- Backend: ${backend}\n` +
-      `- Database: ${database}\n\n` +
-      `🔒 Auth: ${authList}\n` +
-      `⚙️ Features: ${extrasList}\n\n` +
-      `📄 Dynamic Pages & Schemas:\n- ${pagesText}\n\n` +
-      (fk && fkDesc ? `🔗 Relationships: ${fkDesc}\n\n` : "") +
-      `💰 Total Cost: ${total.toLocaleString()} LKR\n` +
-      `⏱️ Est. Delivery: ${days}–${days + 2} days\n\n` +
-      `📝 Details/Topic: ${clientDesc || "None specified"}\n\n` +
-      `Please confirm and let's get started!`
+      `Hi Dev+!\n\nI just configured my project:\n\n` +
+      `Name: ${clientName}\n` +
+      `Uni/Course: ${clientUni || "N/A"}\n` +
+      `Email: ${clientEmail}\n` +
+      `WhatsApp: ${clientWa || "N/A"}\n\n` +
+      `Tech Stack:\n- Frontend: ${frontend}\n- Language: ${language}\n- Backend: ${backend}\n- Database: ${database}\n\n` +
+      `Auth: ${authList}\nFeatures: ${extrasList}\n\n` +
+      `Dynamic Pages & Schemas:\n- ${pagesText}\n\n` +
+      (fk && fkDesc ? `Relationships: ${fkDesc}\n\n` : "") +
+      `Total Cost: ${quote.total.toLocaleString()} LKR\n` +
+      `Estimated Delivery: ${quote.days}-${quote.days + 2} days\n\n` +
+      `Details/Topic: ${clientDesc || "None specified"}\n\nPlease confirm and let's get started.`
     );
+  };
+
+  const openWhatsApp = () => {
+    const msg = encodeURIComponent(getWhatsAppMessage());
+    window.open(`https://wa.me/${DEV_PHONE}?text=${msg}`, "_blank");
   };
 
   const triggerQuoteGeneration = () => {
@@ -405,1007 +368,288 @@ export default function Home() {
     setCompilationProgress(0);
 
     const logs = [
-      `[1/5] Bootstrapping template configuration with ${frontend} and ${language}...`,
-      `[2/5] Synthesizing backend router logic for ${backend}...`,
-      `[3/5] Syncing database connectors for ${database} database...`,
-      `[4/5] Injecting core security features: ${[
-        login && "LoginSessions",
-        encrypt && "bcryptHash",
-        jwt && "jwtVerify",
-        admin && "AdminConsole",
-        email && "SMTPNotifier",
-        upload && "CloudinaryUpload",
-        search && "ElasticIndexes",
-      ]
-        .filter(Boolean)
-        .join(", ") || "No modules selected"}...`,
-      `[5/5] Compiling DB relational models: ${pages.map((p) => p.topic).join(", ")}...`,
-      `[SUCCESS] Configuration package compiled successfully! Redirecting...`,
+      `Preparing ${frontend} project shell with ${language}...`,
+      `Mapping ${backend} services to ${database} storage...`,
+      `Packing selected modules: ${modules.map((m) => m.label).join(", ") || "Core only"}...`,
+      `Compiling schema models: ${pages.map((p) => p.topic).join(", ")}...`,
+      "Quote package ready. Opening WhatsApp...",
     ];
 
     let logIndex = 0;
-    const intervalTime = 600;
-
-    const timer = setInterval(() => {
+    const timer = window.setInterval(() => {
       setCompilationLogs((prev) => [...prev, logs[logIndex]]);
-      logIndex++;
-      setCompilationProgress(
-        Math.min(100, Math.floor((logIndex / logs.length) * 100))
-      );
+      logIndex += 1;
+      setCompilationProgress(Math.min(100, Math.floor((logIndex / logs.length) * 100)));
+      setCompilationStep(logIndex);
 
       if (logIndex >= logs.length) {
-        clearInterval(timer);
-        setTimeout(() => {
+        window.clearInterval(timer);
+        window.setTimeout(() => {
           setCompilationStep(null);
           setSuccessMsgVisible(true);
-          const msg = encodeURIComponent(getWhatsAppMessage());
-          window.open(`https://wa.me/${DEV_PHONE}?text=${msg}`, "_blank");
-        }, 850);
+          openWhatsApp();
+        }, 700);
       }
-    }, intervalTime);
-  };
-
-  const handleOpenWhatsAppManual = () => {
-    const msg = encodeURIComponent(getWhatsAppMessage());
-    window.open(`https://wa.me/${DEV_PHONE}?text=${msg}`, "_blank");
-  };
-
-  // Step Summaries Helper
-  const getStepSummaryText = () => {
-    const stepNames = [
-      "Welcome Screen",
-      "Frontend Framework",
-      "Programming Language",
-      "Backend Architecture",
-      "Database Layer",
-      "Security & Authentication",
-      "Database Schema Modeler",
-      "Relational Joins",
-      "Generate Quotation",
-    ];
-    const parts = [
-      frontend && `Frontend: ${frontend}`,
-      language && `Language: ${language}`,
-      backend && `Backend: ${backend}`,
-      database && `Database: ${database}`,
-    ].filter(Boolean);
-
-    const summary = parts.length
-      ? parts.join(" · ")
-      : "Configure your setup step by step.";
-    return {
-      currentStepName: stepNames[currentStep],
-      summaryLine: `${summary} · Est: ${total.toLocaleString()} LKR`,
-    };
-  };
-
-  const { currentStepName, summaryLine } = getStepSummaryText();
-
-  // Safe active page definition
-  const activePage = pages[activePageIdx] || pages[0] || null;
-
-  // Custom data-type tag styling helper (Prisma Data Browser theme)
-  const getDataTypeBadgeClass = (type: string) => {
-    switch (type) {
-      case "String":
-      case "Text":
-        return "bg-emerald-950/45 text-emerald-400 border border-emerald-500/20";
-      case "Integer":
-      case "Float":
-        return "bg-blue-950/45 text-blue-400 border border-blue-500/20";
-      case "Date":
-        return "bg-amber-950/45 text-amber-400 border border-amber-500/20";
-      case "Boolean":
-        return "bg-purple-950/45 text-purple-400 border border-purple-500/20";
-      case "Email":
-      case "Phone":
-        return "bg-cyan-950/45 text-cyan-400 border border-cyan-500/20";
-      case "Image/File":
-        return "bg-rose-950/45 text-rose-400 border border-rose-500/20";
-      default:
-        return "bg-zinc-800 text-zinc-300 border border-zinc-700/50";
-    }
+    }, 520);
   };
 
   return (
-    <div className="w-screen h-screen overflow-hidden flex flex-col bg-grid-pattern relative text-[#f0f5ff] font-sans antialiased selection:bg-blue-500/30">
-      
-      {/* Ambient background glows */}
-      <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-b from-blue-500/10 to-transparent blur-[130px] pointer-events-none z-0 animate-pulseGlow" />
-      <div className="absolute bottom-[-15%] right-[-10%] w-[450px] h-[450px] bg-blue-600/5 blur-[120px] pointer-events-none z-0" />
-      <div className="absolute bottom-[-15%] left-[-10%] w-[350px] h-[350px] bg-indigo-600/3 blur-[100px] pointer-events-none z-0" />
-
-      {/* Compiler logs simulation overlay screen */}
+    <div className="min-h-screen overflow-x-hidden bg-app-shell text-slate-950 selection:bg-teal-200/70">
       {compilationStep !== null && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#030712]/95 backdrop-blur-md p-4 animate-fadeIn">
-          <div className="w-full max-w-xl bg-[#090d16] border border-[#1d2d5c]/60 rounded-2xl p-6 shadow-[0_0_50px_rgba(59,130,246,0.15)] flex flex-col font-mono text-xs text-blue-300">
-            <div className="flex items-center justify-between border-b border-[#1d2d5c]/35 pb-3 mb-4">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/80 p-4 backdrop-blur-md">
+          <div className="w-full max-w-2xl rounded-[28px] border border-white/10 bg-slate-950 p-5 shadow-2xl">
+            <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-4">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-red-500/80" />
-                <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <span className="w-3 h-3 rounded-full bg-green-500/80" />
+                <span className="h-3 w-3 rounded-full bg-rose-400" />
+                <span className="h-3 w-3 rounded-full bg-amber-300" />
+                <span className="h-3 w-3 rounded-full bg-emerald-400" />
               </div>
-              <span className="text-[#6b6890] text-[10px] font-bold">DEV+ COMPILER TERMINAL</span>
+              <span className="font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500">
+                Dev+ quote builder
+              </span>
             </div>
-            
-            <div className="flex-grow space-y-2.5 min-h-[160px] overflow-y-auto pr-1">
-              {compilationLogs.map((log, idx) => (
-                <div 
-                  key={idx} 
-                  className={`leading-relaxed ${
-                    log.startsWith("[SUCCESS]") 
-                      ? "text-emerald-400 font-bold" 
-                      : log.startsWith("[1/") || log.startsWith("[2/") || log.startsWith("[3/") || log.startsWith("[4/") || log.startsWith("[5/") 
-                      ? "text-blue-400" 
-                      : "text-blue-200/80"
-                  }`}
-                >
-                  {log}
-                </div>
+            <div className="min-h-40 space-y-3 font-mono text-sm text-slate-300">
+              {compilationLogs.map((log) => (
+                <p key={log} className="leading-relaxed">
+                  <span className="text-teal-300">$</span> {log}
+                </p>
               ))}
-              <div className="terminal-cursor text-blue-500 font-bold text-xs" />
+              <span className="terminal-cursor text-teal-300" />
             </div>
-
             <div className="mt-6">
-              <div className="flex items-center justify-between text-[10px] text-[#6b6890] mb-2 font-bold uppercase tracking-wider">
-                <span>Compiling setup...</span>
+              <div className="mb-2 flex justify-between text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                <span>Building request</span>
                 <span>{compilationProgress}%</span>
               </div>
-              <div className="w-full bg-[#121835] rounded-full h-2 overflow-hidden border border-[#1d2d5c]/50">
-                <div 
-                  className="bg-gradient-to-r from-blue-600 to-cyan-500 h-full rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(0,102,255,0.5)]" 
-                  style={{ width: `${compilationProgress}%` }}
-                />
+              <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full rounded-full bg-gradient-to-r from-teal-300 via-sky-400 to-amber-300 transition-all" style={{ width: `${compilationProgress}%` }} />
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Header bar */}
-      {currentStep > 0 && (
-        <header className="flex-shrink-0 w-full border-b border-[#1d2d5c]/35 bg-[#070c20]/50 py-3 px-6 flex items-center justify-between z-20 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <img
-              src="/logo.png"
-              alt="Dev+ Logo"
-              className="h-9 sm:h-11 w-auto object-contain rounded-md"
-            />
-            <span className="text-xs font-semibold text-[#6b6890] hidden sm:inline">/ Project Configurator</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-blue-500/15 bg-blue-950/20 px-3.5 py-1 text-xs font-semibold text-blue-300">
-              <i className="ti ti-mail text-[13px] text-blue-400 animate-pulse" /> anuk200101@gmail.com
+      <header className="sticky top-0 z-30 border-b border-slate-900/10 bg-white/85 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+          <button type="button" onClick={() => setCurrentStep(0)} className="flex items-center gap-3" aria-label="Go to Dev+ welcome page">
+            <Image src="/logo.png" alt="Dev+ logo" width={112} height={40} className="h-9 w-auto object-contain" priority />
+            <span className="hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600 sm:inline-flex">
+              Project Studio
             </span>
+          </button>
+          <div className="flex items-center gap-2">
+            <a href={`https://wa.me/${DEV_PHONE}`} target="_blank" rel="noreferrer" className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 shadow-sm sm:inline-flex">
+              <i className="ti ti-brand-whatsapp text-base" /> WhatsApp
+            </a>
+            {currentStep > 0 ? (
+              <button type="button" onClick={() => setSummaryDrawerOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm lg:hidden">
+                <i className="ti ti-receipt" /> {quote.total.toLocaleString()} LKR
+              </button>
+            ) : (
+              <button type="button" onClick={() => goToStep(1)} className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm lg:hidden">
+                Start <i className="ti ti-arrow-right" />
+              </button>
+            )}
           </div>
-        </header>
-      )}
+        </div>
+      </header>
 
-      {/* Main content grid area */}
-      <main className="flex-grow w-full overflow-hidden flex items-center justify-center p-3 sm:p-5 z-10">
-        {currentStep === 0 ? (
-          <div className="w-full max-w-2xl flex flex-col items-center justify-center text-center p-6 sm:p-12 border border-[#1d2d5c]/50 bg-[#0c122c]/50 rounded-3xl shadow-[0_0_50px_rgba(59,130,246,0.12)] backdrop-blur-xl animate-fadeIn relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-blue-500/5 blur-3xl pointer-events-none" />
-            
-            <div className="relative group animate-float">
-              <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-600 to-cyan-500 opacity-30 blur-lg group-hover:opacity-75 transition duration-500" />
-              <img
-                src="/logo-square.jpg"
-                alt="Dev+ Banner"
-                className="relative h-24 w-24 sm:h-32 sm:w-32 object-contain rounded-3xl border border-blue-500/20 bg-white p-1.5 shadow-md"
-              />
-            </div>
-
-            <h1 className="mt-6 text-3xl sm:text-5xl font-black tracking-tight bg-gradient-to-r from-blue-400 via-cyan-400 to-indigo-400 bg-clip-text text-transparent">
-              Dev<span className="text-[#f472b6]">+</span>
-            </h1>
-
-            <p className="mt-3 text-xs sm:text-base text-blue-200/80 max-w-md leading-relaxed font-medium">
-              We focus exclusively on web-based project development, delivering modern and scalable solutions.
-            </p>
-
-            <div className="mt-8 w-full max-w-md bg-[#0e1430]/70 border border-blue-500/15 rounded-2xl p-5 shadow-[inset_0_0_15px_rgba(59,130,246,0.06)]">
-              <h3 className="text-xs sm:text-sm font-black text-blue-300 flex items-center justify-center gap-1.5 uppercase tracking-wider">
-                🎓 Struggling with Assignments or Projects?
-              </h3>
-              <p className="mt-1 text-xs text-[#c0bdd8]/70 font-medium">
-                Don’t worry — Dev+ is here to help! 🚀
-              </p>
-              <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-500/20 px-4 py-1.5 text-xs font-bold text-blue-400">
-                <i className="ti ti-brand-whatsapp text-sm text-emerald-400" /> Call / WhatsApp Support: +94 77 123 4567
+      <main className={`mx-auto max-w-7xl gap-5 px-4 py-5 sm:px-6 lg:py-7 ${currentStep === 0 ? "block" : "grid lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[250px_minmax(0,1fr)_300px]"}`}>
+        {currentStep > 0 && (
+        <aside className="hidden lg:block">
+          <div className="surface-panel sticky top-24 p-4">
+            <div className="mb-4">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Progress</p>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-full rounded-full bg-gradient-to-r from-teal-400 to-sky-500" style={{ width: `${progressPercent}%` }} />
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={() => setCurrentStep(1)}
-              className="mt-8 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 py-3 px-8 text-xs sm:text-sm font-bold text-white shadow-lg shadow-blue-500/10 active:scale-98 hover:scale-[1.01] transition-all duration-200 cursor-pointer"
-            >
-              Configure Your Project <i className="ti ti-arrow-right" />
-            </button>
+            <nav className="space-y-2">
+              {stepItems.map((item) => {
+                const active = currentStep === item.idx;
+                const done = currentStep > item.idx;
+                const accessible = item.idx <= maxStepReached;
+                return (
+                  <button
+                    key={item.idx}
+                    type="button"
+                    disabled={!accessible}
+                    onClick={() => {
+                      setValidationError(null);
+                      setCurrentStep(item.idx);
+                    }}
+                    className={`flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition ${active ? "border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-950/10" : accessible ? "border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50" : "border-transparent bg-slate-50 text-slate-300"}`}
+                  >
+                    <span className={`grid h-9 w-9 place-items-center rounded-xl ${active ? "bg-white/10" : done ? "bg-emerald-50 text-emerald-600" : "bg-slate-100"}`}>
+                      <i className={`ti ${done ? "ti-check" : item.icon}`} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-extrabold">{item.label}</span>
+                      <span className={`block text-xs ${active ? "text-white/55" : "text-slate-400"}`}>Step {item.idx}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
-        ) : (
-          <div className="w-full h-full max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch overflow-hidden">
-            
-            {/* Timeline Sidebar (Desktop only) */}
-            <div className="hidden lg:flex lg:col-span-3 flex-col glass-panel rounded-2xl p-4 overflow-y-auto">
-              <span className="text-[10px] font-black text-[#6b6890] uppercase tracking-widest mb-4 border-b border-[#1d2d5c]/25 pb-2 block">
-                Configuration Progress
-              </span>
-              
-              <div className="space-y-1">
-                {[
-                  { idx: 1, label: "Frontend Framework", icon: "ti-brand-react" },
-                  { idx: 2, label: "Programming Language", icon: "ti-brand-typescript" },
-                  { idx: 3, label: "Backend Server", icon: "ti-brand-nodejs" },
-                  { idx: 4, label: "Database Layer", icon: "ti-database" },
-                  { idx: 5, label: "Security & Modules", icon: "ti-shield" },
-                  { idx: 6, label: "Database Schema", icon: "ti-server" },
-                  { idx: 7, label: "Table Relations", icon: "ti-git-fork" },
-                  { idx: 8, label: "Submit & WhatsApp", icon: "ti-brand-whatsapp" },
-                ].map((s) => {
-                  const isCompleted = currentStep > s.idx;
-                  const isActive = currentStep === s.idx;
-                  const isAccessible = s.idx <= maxStepReached;
-                  
-                  return (
-                    <div
-                      key={s.idx}
-                      onClick={() => {
-                        if (isAccessible) {
-                          setValidationError(null);
-                          setCurrentStep(s.idx);
-                        }
-                      }}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all duration-200 select-none ${
-                        isActive 
-                          ? "bg-blue-600/10 border-blue-500/50 text-blue-300 font-bold shadow-[0_0_12px_rgba(59,130,246,0.06)]"
-                          : isAccessible
-                          ? "bg-[#121835]/15 border-[#1d2d5c]/30 text-[#9ca3c0] hover:border-blue-500/20 cursor-pointer"
-                          : "border-transparent text-[#6b6890]/40 cursor-not-allowed"
-                      }`}
-                    >
-                      <div className={`h-6 w-6 rounded-lg flex items-center justify-center border transition-all ${
-                        isActive 
-                          ? "bg-blue-500/20 border-blue-500 text-blue-400" 
-                          : isCompleted 
-                          ? "bg-emerald-950/20 border-emerald-500/20 text-emerald-400" 
-                          : "bg-[#121835]/30 border-transparent text-[#6b6890]/50"
-                      }`}>
-                        {isCompleted ? (
-                          <i className="ti ti-check text-xs font-bold" />
-                        ) : (
-                          <i className={`ti ${s.icon} text-xs`} />
-                        )}
-                      </div>
-                      <div className="flex-grow min-w-0">
-                        <span className="block text-xs truncate">{s.label}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+        </aside>
+        )}
 
-            {/* Main Form Panel */}
-            <div className="col-span-1 lg:col-span-6 flex flex-col glass-panel rounded-2xl overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-[150px] h-[150px] bg-blue-500/5 blur-3xl pointer-events-none" />
-
-              <div className="p-4 sm:p-5 border-b border-[#1d2d5c]/35 flex-shrink-0 bg-[#070c20]/30">
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-950/30 border border-blue-500/20 px-2 py-0.5 rounded flex items-center gap-1">
-                    <i className="ti ti-settings-2 text-[10px]" /> STEP {currentStep} OF {STEPS - 1}
+        <section className="min-w-0">
+          {currentStep === 0 ? (
+            <WelcomeScreen quoteTotal={quote.total} days={quote.days} onStart={() => goToStep(1)} />
+          ) : (
+            <div className="surface-panel overflow-hidden">
+              <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-teal-700">
+                    Step {currentStep} of {STEPS - 1}
                   </span>
-                  <span className="text-xs font-bold text-blue-300">
-                    {currentStepName}
-                  </span>
+                  <span className="text-sm font-bold text-slate-500">{selectedStack || "Configure your stack"}</span>
                 </div>
-                <h2 className="mt-2.5 text-sm sm:text-base font-bold text-[#f0f5ff] tracking-wide">
-                  {currentStep === 1 && "Select Frontend Framework"}
-                  {currentStep === 2 && "Choose Development Language"}
-                  {currentStep === 3 && "Configure Backend Server"}
-                  {currentStep === 4 && "Select Database Engine"}
-                  {currentStep === 5 && "Configure Authentication & Core Modules"}
-                  {currentStep === 6 && "Define Application Pages & Data Schema"}
-                  {currentStep === 7 && "Design Table Relationships"}
-                  {currentStep === 8 && "Generate WhatsApp Quote"}
-                </h2>
+                <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">{getStepTitle(currentStep)}</h1>
               </div>
 
-              <div key={currentStep} className="p-4 sm:p-5 overflow-y-auto flex-grow text-xs sm:text-sm animate-slideIn">
+              <div className="min-h-[560px] p-4 sm:p-6 lg:p-7">
                 {validationError && (
-                  <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-950/15 px-4 py-2.5 text-xs text-red-400 font-semibold animate-fadeIn">
-                    <i className="ti ti-alert-circle text-sm" />
+                  <div className="mb-4 flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
+                    <i className="ti ti-alert-circle text-lg" />
                     <span>{validationError}</span>
                   </div>
                 )}
 
                 {currentStep === 1 && (
-                  <div className="grid grid-cols-2 gap-3.5">
-                    {[
-                      { name: "React", sub: "Vite + SPA Router", icon: "ti-brand-react" },
-                      { name: "Next.js", sub: "App Router + SSR", icon: "ti-brand-nextjs" },
-                      { name: "Vite", sub: "Vanilla SPA Template", icon: "ti-bolt" },
-                      { name: "Vue", sub: "Nuxt Framework", icon: "ti-brand-vue" },
-                    ].map((item) => {
-                      const isActive = frontend === item.name;
-                      return (
-                        <div
-                          key={item.name}
-                          onClick={() => {
-                            setFrontend(item.name);
-                            setValidationError(null);
-                          }}
-                          className={`glass-panel-interactive rounded-2xl p-4 text-center cursor-pointer select-none relative ${
-                            isActive ? "glow-active border-blue-500 bg-blue-600/5" : ""
-                          }`}
-                        >
-                          <div className={`absolute top-2.5 right-2.5 h-4 w-4 rounded-full border flex items-center justify-center transition-all ${
-                            isActive ? "border-blue-500 bg-blue-500 text-white" : "border-[#1d2d5c] bg-[#121835]/30"
-                          }`}>
-                            {isActive && <i className="ti ti-check text-[9px] font-bold" />}
-                          </div>
-                          
-                          <i className={`ti ${item.icon} block text-3xl mb-2 transition-colors ${
-                            isActive ? "text-blue-400" : "text-[#6b6890]/50"
-                          }`} />
-                          <span className={`block text-xs sm:text-sm font-bold tracking-wide ${
-                            isActive ? "text-[#f0f5ff]" : "text-[#9ca3c0]"
-                          }`}>{item.name}</span>
-                          <span className="block text-[10px] text-[#6b6890] mt-1 font-medium">{item.sub}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <ChoiceGrid
+                    cols="sm:grid-cols-2"
+                    items={[
+                      { name: "React", sub: "Fast SPA with a clean component system", icon: "ti-brand-react" },
+                      { name: "Next.js", sub: "SEO-ready App Router project", icon: "ti-brand-nextjs" },
+                      { name: "Vite", sub: "Lean frontend for compact projects", icon: "ti-bolt" },
+                      { name: "Vue", sub: "Friendly UI with Nuxt option", icon: "ti-brand-vue" },
+                    ]}
+                    value={frontend}
+                    onSelect={setFrontend}
+                    clearError={() => setValidationError(null)}
+                  />
                 )}
 
                 {currentStep === 2 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    {[
-                      { name: "TypeScript", sub: "Strict type safety & production scalable configuration", icon: "ti-brand-typescript" },
-                      { name: "JavaScript", sub: "Quick scripting style configuration & dynamic loading", icon: "ti-brand-javascript" },
-                    ].map((item) => {
-                      const isActive = language === item.name;
-                      return (
-                        <div
-                          key={item.name}
-                          onClick={() => {
-                            setLanguage(item.name);
-                            setValidationError(null);
-                          }}
-                          className={`glass-panel-interactive rounded-2xl p-4.5 flex items-center gap-4.5 cursor-pointer select-none relative ${
-                            isActive ? "glow-active border-blue-500 bg-blue-600/5" : ""
-                          }`}
-                        >
-                          <div className={`absolute top-3 right-3 h-4 w-4 rounded-full border flex items-center justify-center transition-all ${
-                            isActive ? "border-blue-500 bg-blue-500 text-white" : "border-[#1d2d5c]"
-                          }`}>
-                            {isActive && <i className="ti ti-check text-[9px]" />}
-                          </div>
-                          
-                          <i className={`ti ${item.icon} text-3xl ${
-                            isActive ? "text-blue-400" : "text-[#6b6890]/50"
-                          }`} />
-                          <div>
-                            <span className={`block text-xs sm:text-sm font-bold tracking-wide ${
-                              isActive ? "text-[#f0f5ff]" : "text-[#9ca3c0]"
-                            }`}>{item.name}</span>
-                            <span className="block text-[10px] text-[#6b6890] mt-0.5 font-medium leading-normal">{item.sub}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <ChoiceGrid
+                    cols="sm:grid-cols-2"
+                    items={[
+                      { name: "TypeScript", sub: "Typed, maintainable, production-friendly", icon: "ti-brand-typescript" },
+                      { name: "JavaScript", sub: "Simple, quick, and familiar", icon: "ti-brand-javascript" },
+                    ]}
+                    value={language}
+                    onSelect={setLanguage}
+                    clearError={() => setValidationError(null)}
+                  />
                 )}
 
                 {currentStep === 3 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                    {[
-                      { name: "Next.js API", sub: "Built-in serverless route handlers", icon: "ti-brand-nextjs" },
-                      { name: "Node/Express", sub: "Custom standalone Node REST backend", icon: "ti-brand-nodejs" },
-                      { name: "Spring Boot", sub: "Robust compiles enterprise Java", icon: "ti-leaf" },
-                    ].map((item) => {
-                      const isActive = backend === item.name;
-                      return (
-                        <div
-                          key={item.name}
-                          onClick={() => {
-                            setBackend(item.name);
-                            setValidationError(null);
-                          }}
-                          className={`glass-panel-interactive rounded-2xl p-4 text-center cursor-pointer select-none relative ${
-                            isActive ? "glow-active border-blue-500 bg-blue-600/5" : ""
-                          }`}
-                        >
-                          <div className={`absolute top-2.5 right-2.5 h-4 w-4 rounded-full border flex items-center justify-center transition-all ${
-                            isActive ? "border-blue-500 bg-blue-500 text-white" : "border-[#1d2d5c]"
-                          }`}>
-                            {isActive && <i className="ti ti-check text-[9px]" />}
-                          </div>
-                          
-                          <i className={`ti ${item.icon} block text-3xl mb-2.5 ${
-                            isActive ? "text-blue-400" : "text-[#6b6890]/50"
-                          }`} />
-                          <span className={`block text-xs font-bold tracking-wide ${
-                            isActive ? "text-[#f0f5ff]" : "text-[#9ca3c0]"
-                          }`}>{item.name}</span>
-                          <span className="block text-[10px] text-[#6b6890] mt-1.5 font-medium leading-normal">{item.sub}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <ChoiceGrid
+                    cols="sm:grid-cols-3"
+                    items={[
+                      { name: "Next.js API", sub: "One project with built-in route handlers", icon: "ti-brand-nextjs" },
+                      { name: "Node/Express", sub: "Custom REST API service", icon: "ti-brand-nodejs" },
+                      { name: "Spring Boot", sub: "Structured Java backend", icon: "ti-leaf" },
+                    ]}
+                    value={backend}
+                    onSelect={setBackend}
+                    clearError={() => setValidationError(null)}
+                  />
                 )}
 
                 {currentStep === 4 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {[
-                      { name: "Firebase", sub: "Auth & DB Combo", icon: "ti-flame" },
-                      { name: "MongoDB", sub: "Atlas NoSQL", icon: "ti-database" },
-                      { name: "MySQL", sub: "Classic relational", icon: "ti-sql" },
-                      { name: "PostgreSQL", sub: "Advanced relational", icon: "ti-database-cog" },
-                    ].map((item) => {
-                      const isActive = database === item.name;
-                      return (
-                        <div
-                          key={item.name}
-                          onClick={() => {
-                            setDatabase(item.name);
-                            setValidationError(null);
-                          }}
-                          className={`glass-panel-interactive rounded-2xl p-3 text-center cursor-pointer select-none relative ${
-                            isActive ? "glow-active border-blue-500 bg-blue-600/5" : ""
-                          }`}
-                        >
-                          <div className={`absolute top-2 right-2 h-3.5 w-3.5 rounded-full border flex items-center justify-center transition-all ${
-                            isActive ? "border-blue-500 bg-blue-500 text-white" : "border-[#1d2d5c]"
-                          }`}>
-                            {isActive && <i className="ti ti-check text-[8px]" />}
-                          </div>
-                          
-                          <i className={`ti ${item.icon} block text-2xl mb-2 ${
-                            isActive ? "text-blue-400" : "text-[#6b6890]/50"
-                          }`} />
-                          <span className={`block text-xs font-bold tracking-wide ${
-                            isActive ? "text-[#f0f5ff]" : "text-[#9ca3c0]"
-                          }`}>{item.name}</span>
-                          <span className="block text-[9px] text-[#6b6890] mt-1 font-medium">{item.sub}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <ChoiceGrid
+                    cols="sm:grid-cols-4"
+                    items={[
+                      { name: "Firebase", sub: "Auth and realtime data", icon: "ti-flame" },
+                      { name: "MongoDB", sub: "Flexible document storage", icon: "ti-database" },
+                      { name: "MySQL", sub: "Classic relational DB", icon: "ti-sql" },
+                      { name: "PostgreSQL", sub: "Advanced relational DB", icon: "ti-database-cog" },
+                    ]}
+                    value={database}
+                    onSelect={setDatabase}
+                    clearError={() => setValidationError(null)}
+                  />
                 )}
 
                 {currentStep === 5 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-h-[300px] sm:max-h-[350px] overflow-y-auto pr-1">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     {[
-                      { id: "login", label: "Login & Register UI", desc: "Interactive auth pages (+500 LKR)", val: login, set: setLogin, icon: "ti-user-check" },
-                      { id: "encrypt", label: "Password Cryptography", desc: "Bcrypt hash storage (+200 LKR)", val: encrypt, set: setEncrypt, icon: "ti-shield-lock" },
-                      { id: "jwt", label: "JWT Stateless Tokens", desc: "Secure endpoint auth (+300 LKR)", val: jwt, set: setJwt, icon: "ti-key" },
-                      { id: "admin", label: "Admin Console Dashboard", desc: "Manage rows & tables (+1,000 LKR)", val: admin, set: setAdmin, icon: "ti-dashboard" },
-                      { id: "email", label: "SMTP Auto Emailer", desc: "Transactional email alerts (+500 LKR)", val: email, set: setEmail, icon: "ti-mail" },
-                      { id: "upload", label: "Cloud Upload integration", desc: "Store images securely (+500 LKR)", val: upload, set: setUpload, icon: "ti-cloud-upload" },
-                      { id: "search", label: "Optimized Search Index", desc: "Fast textual lookups (+500 LKR)", val: search, set: setSearch, icon: "ti-search" },
+                      { label: "Login & register", desc: "+500 LKR", active: login, set: setLogin, icon: "ti-user-check" },
+                      { label: "Password encryption", desc: "+200 LKR", active: encrypt, set: setEncrypt, icon: "ti-shield-lock" },
+                      { label: "JWT tokens", desc: "+300 LKR", active: jwt, set: setJwt, icon: "ti-key" },
+                      { label: "Admin dashboard", desc: "+1,000 LKR", active: admin, set: setAdmin, icon: "ti-dashboard" },
+                      { label: "Email automation", desc: "+500 LKR", active: email, set: setEmail, icon: "ti-mail" },
+                      { label: "File uploads", desc: "+500 LKR", active: upload, set: setUpload, icon: "ti-cloud-upload" },
+                      { label: "Search feature", desc: "+500 LKR", active: search, set: setSearch, icon: "ti-search" },
                     ].map((item) => (
-                      <div
-                        key={item.id}
-                        onClick={() => item.set(!item.val)}
-                        className={`glass-panel-interactive rounded-2xl p-3.5 flex items-center justify-between cursor-pointer select-none relative ${
-                          item.val ? "border-blue-500/60 bg-blue-600/5 shadow-[0_0_12px_rgba(59,130,246,0.06)]" : ""
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`h-8 w-8 rounded-xl flex items-center justify-center border ${
-                            item.val ? "bg-blue-500/10 border-blue-500/30 text-blue-400" : "bg-[#121835]/20 border-[#1d2d5c]/50 text-[#6b6890]/65"
-                          }`}>
-                            <i className={`ti ${item.icon} text-base`} />
-                          </div>
-                          <div>
-                            <span className={`block text-xs font-bold ${item.val ? "text-[#f0f5ff]" : "text-[#c0bdd8]"}`}>{item.label}</span>
-                            <span className="block text-[9px] text-[#6b6890] mt-0.5 font-medium">{item.desc}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="relative inline-flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={item.val}
-                            readOnly
-                            className="sr-only"
-                          />
-                          <div className={`w-8 h-4.5 rounded-full transition-all duration-200 relative ${
-                            item.val ? "bg-blue-500" : "bg-[#121835]"
-                          }`}>
-                            <div className={`absolute top-0.5 left-0.5 h-3.5 w-3.5 rounded-full bg-white transition-all duration-200 ${
-                              item.val ? "translate-x-3.5 bg-blue-100" : "bg-[#6b6890]"
-                            }`} />
-                          </div>
-                        </div>
-                      </div>
+                      <ToggleCard key={item.label} {...item} />
                     ))}
                   </div>
                 )}
 
-                {currentStep === 6 && (
-                  <div className="flex flex-col sm:flex-row gap-4 h-[350px] overflow-hidden">
-                    
-                    <div className="flex-shrink-0 w-full sm:w-[170px] flex sm:flex-col border-b sm:border-b-0 sm:border-r border-[#1d2d5c]/35 pb-3 sm:pb-0 sm:pr-3 overflow-x-auto sm:overflow-x-hidden sm:overflow-y-auto gap-2">
-                      <span className="hidden sm:block text-[9px] font-black text-[#6b6890] uppercase tracking-wider mb-2">
-                        Schemas / Tables
-                      </span>
-                      
-                      <div className="flex sm:flex-col gap-1.5 w-full">
-                        {pages.map((p, idx) => (
-                          <div
-                            key={idx}
-                            onClick={() => setActivePageIdx(idx)}
-                            className={`flex flex-col gap-1 px-3 py-2 rounded-xl border cursor-pointer transition-all duration-150 select-none ${
-                              activePageIdx === idx
-                                ? "bg-blue-600/10 border-blue-500/50 text-blue-300"
-                                : "bg-[#121835]/15 border-[#1d2d5c]/30 text-[#9ca3c0] hover:border-blue-500/10"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-2 text-xs font-bold">
-                              <span className="truncate flex-grow">
-                                <i className="ti ti-table mr-1 text-blue-400" />
-                                {p.topic || `Table ${idx + 1}`}
-                              </span>
-                              {pages.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => handleRemovePage(idx, e)}
-                                  className="text-[#6b6890] hover:text-red-400 p-0.5 rounded transition-all"
-                                >
-                                  <i className="ti ti-x text-[10px]" />
-                                </button>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center gap-1">
-                              {[
-                                { key: "create", char: "C", color: "text-emerald-400 bg-emerald-950/20 border-emerald-500/10" },
-                                { key: "read", char: "R", color: "text-blue-400 bg-blue-950/20 border-blue-500/10" },
-                                { key: "update", char: "U", color: "text-amber-400 bg-amber-950/20 border-amber-500/10" },
-                                { key: "delete", char: "D", color: "text-rose-400 bg-rose-950/20 border-rose-500/10" },
-                                { key: "search", char: "S", color: "text-purple-400 bg-purple-950/20 border-purple-500/10" },
-                              ].map((tag) => {
-                                const active = p[tag.key as keyof PageSpec] as boolean;
-                                if (!active) return null;
-                                return (
-                                  <span
-                                    key={tag.key}
-                                    className={`text-[8px] font-black h-3.5 w-3.5 flex items-center justify-center rounded border ${tag.color}`}
-                                  >
-                                    {tag.char}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleAddPage}
-                        className="flex-shrink-0 sm:w-full mt-2 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#1d2d5c] hover:border-blue-500/50 bg-[#070c20]/20 py-2 px-3 text-[10px] font-extrabold text-blue-400 hover:bg-[#121835]/15 transition-all cursor-pointer whitespace-nowrap"
-                      >
-                        + Add Page Table
-                      </button>
-                    </div>
-
-                    {activePage && (
-                      <div className="flex-grow flex flex-col overflow-hidden space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                          <div>
-                            <label className="block text-[9px] text-[#6b6890] font-black uppercase tracking-wider">
-                              Table Name
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="e.g. Products"
-                              value={activePage.topic}
-                              onChange={(e) =>
-                                handlePageTopicChange(activePageIdx, e.target.value)
-                              }
-                              className="mt-1 w-full bg-[#121835]/30 border border-[#1d2d5c]/60 focus:border-blue-500 focus:outline-none rounded-lg py-1.5 px-3 text-xs text-[#f0f5ff] font-bold"
-                            />
-                          </div>
-
-                          <div className="sm:col-span-2">
-                            <label className="block text-[9px] text-[#6b6890] font-black uppercase tracking-wider">
-                              CRUD endpoints
-                            </label>
-                            <div className="flex flex-wrap gap-1 mt-1.5">
-                              {[
-                                { key: "create", label: "CREATE", color: "hover:border-emerald-500/50 text-emerald-400 border-emerald-500/15" },
-                                { key: "read", label: "READ", color: "hover:border-blue-500/50 text-blue-400 border-blue-500/15" },
-                                { key: "update", label: "UPDATE", color: "hover:border-amber-500/50 text-amber-400 border-amber-500/15" },
-                                { key: "delete", label: "DELETE", color: "hover:border-rose-500/50 text-rose-400 border-rose-500/15" },
-                                { key: "search", label: "SEARCH", color: "hover:border-purple-500/50 text-purple-400 border-purple-500/15" },
-                              ].map((op) => {
-                                const isChecked = activePage[op.key as keyof PageSpec] as boolean;
-                                return (
-                                  <button
-                                    key={op.key}
-                                    type="button"
-                                    onClick={() =>
-                                      handleCrudToggle(activePageIdx, op.key as any)
-                                    }
-                                    className={`px-2 py-0.5 rounded-md border text-[9px] font-black transition-all flex items-center justify-center select-none ${
-                                      isChecked
-                                        ? "bg-blue-600/15 border-blue-500 text-blue-300"
-                                        : `bg-[#121835]/15 border-[#1d2d5c]/40 text-[#6b6890] ${op.color}`
-                                    }`}
-                                  >
-                                    {op.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex-grow flex flex-col overflow-hidden border border-[#1d2d5c]/30 rounded-xl bg-[#070c20]/20 p-3">
-                          <div className="flex items-center justify-between border-b border-[#1d2d5c]/20 pb-2 mb-2 flex-shrink-0">
-                            <span className="text-[9px] text-[#6b6890] font-black uppercase tracking-wider flex items-center gap-1.5">
-                              <i className="ti ti-list text-blue-400" /> Model attributes
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleAddField(activePageIdx)}
-                              className="text-[9px] font-black text-blue-400 hover:text-blue-300 bg-blue-950/20 border border-blue-500/20 px-2.5 py-0.5 rounded-lg transition-all"
-                            >
-                              + Add Attribute
-                            </button>
-                          </div>
-
-                          <div className="flex-grow overflow-y-auto pr-1 space-y-1.5">
-                            {activePage.fields.length === 0 ? (
-                              <div className="text-center py-6 text-xs text-[#6b6890] italic">
-                                No attributes declared. Click "+ Add Attribute".
-                              </div>
-                            ) : (
-                              activePage.fields.map((fld, fIdx) => (
-                                <div
-                                  key={fIdx}
-                                  className="flex items-center gap-2 bg-[#121835]/10 px-2 py-1 rounded-lg border border-[#1d2d5c]/20 hover:border-blue-500/10 transition-all"
-                                >
-                                  <span className="text-[8px] font-black text-[#6b6890] min-w-[15px]">
-                                    #{fIdx + 1}
-                                  </span>
-
-                                  <input
-                                    type="text"
-                                    placeholder="e.g. name"
-                                    value={fld.label}
-                                    onChange={(e) =>
-                                      handleFieldLabelChange(activePageIdx, fIdx, e.target.value)
-                                    }
-                                    className="flex-grow min-w-[70px] bg-[#070c20]/40 border border-[#1d2d5c]/50 focus:border-blue-500 focus:outline-none rounded py-0.5 px-2 text-xs text-[#f0f5ff] font-semibold"
-                                  />
-
-                                  <div className="relative flex-shrink-0 flex items-center">
-                                    <select
-                                      value={fld.type}
-                                      onChange={(e) =>
-                                        handleFieldTypeChange(activePageIdx, fIdx, e.target.value)
-                                      }
-                                      className={`appearance-none bg-transparent pr-4 pl-2 py-0.5 text-[9px] font-black rounded cursor-pointer outline-none ${getDataTypeBadgeClass(
-                                        fld.type
-                                      )}`}
-                                    >
-                                      {fieldTypes.map((t) => (
-                                        <option key={t} value={t} className="bg-[#0c122c] text-[#f0f5ff]">
-                                          {t}
-                                        </option>
-                                      ))}
-                                    </select>
-                                    <i className="ti ti-chevron-down absolute right-1 pointer-events-none text-[8px] text-[#6b6890]" />
-                                  </div>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveField(activePageIdx, fIdx)}
-                                    className="text-red-400/40 hover:text-red-400 p-1 rounded transition-all"
-                                  >
-                                    <i className="ti ti-trash text-xs" />
-                                  </button>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                {currentStep === 6 && activePage && (
+                  <SchemaEditor
+                    pages={pages}
+                    activePageIdx={clampedActivePageIdx}
+                    activePage={activePage}
+                    setActivePageIdx={setActivePageIdx}
+                    handleAddPage={handleAddPage}
+                    handleRemovePage={handleRemovePage}
+                    updatePage={updatePage}
+                    handleCrudToggle={handleCrudToggle}
+                    handleAddField={handleAddField}
+                    handleRemoveField={handleRemoveField}
+                    updateField={updateField}
+                  />
                 )}
 
                 {currentStep === 7 && (
-                  <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
-                    <div className="flex items-center justify-between pb-3 border-b border-[#1d2d5c]/35">
-                      <div>
-                        <span className="block text-xs sm:text-sm font-semibold text-[#f0f5ff] tracking-wide">
-                          Table Joins &amp; Relationships
-                        </span>
-                        <span className="block text-xs text-[#6b6890] mt-0.5">
-                          Configure relational joins to link records between tables.
-                        </span>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                        <input
-                          type="checkbox"
-                          checked={fk}
-                          onChange={(e) => setFk(e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-8 h-4.5 rounded-full transition-all duration-200 relative bg-[#121835] peer-checked:bg-blue-500">
-                          <div className={`absolute top-0.5 left-0.5 h-3.5 w-3.5 rounded-full bg-[#6b6890] transition-all duration-200 ${
-                            fk ? "translate-x-3.5 bg-blue-100" : ""
-                          }`} />
-                        </div>
-                      </label>
-                    </div>
-
-                    {fk && (
-                      <div className="animate-fadeIn space-y-4">
-                        
-                        <div className="bg-[#0e1430]/30 border border-[#1d2d5c]/40 rounded-xl p-3.5 flex flex-col sm:flex-row items-end gap-3">
-                          <div className="flex-grow w-full">
-                            <label className="block text-[9px] text-[#6b6890] font-black uppercase tracking-wider mb-1">
-                              Source Model
-                            </label>
-                            <select
-                              value={sourceTable}
-                              onChange={(e) => setSourceTable(e.target.value)}
-                              className="w-full bg-[#070c20]/60 border border-[#1d2d5c]/60 focus:border-blue-500 rounded-lg py-1.5 px-3 text-xs text-[#f0f5ff] outline-none font-bold"
-                            >
-                              {pages.map((p) => (
-                                <option key={p.topic} value={p.topic} className="bg-[#0c122c]">
-                                  {p.topic}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="flex-grow w-full">
-                            <label className="block text-[9px] text-[#6b6890] font-black uppercase tracking-wider mb-1">
-                              Relation Type
-                            </label>
-                            <select
-                              value={relationType}
-                              onChange={(e) => setRelationType(e.target.value)}
-                              className="w-full bg-[#070c20]/60 border border-[#1d2d5c]/60 focus:border-blue-500 rounded-lg py-1.5 px-3 text-xs text-blue-300 outline-none font-bold"
-                            >
-                              <option value="Has Many (1:N)" className="bg-[#0c122c]">Has Many (1:N)</option>
-                              <option value="Belongs To (1:1)" className="bg-[#0c122c]">Belongs To (1:1)</option>
-                              <option value="Many to Many (M:N)" className="bg-[#0c122c]">Many to Many (M:N)</option>
-                            </select>
-                          </div>
-
-                          <div className="flex-grow w-full">
-                            <label className="block text-[9px] text-[#6b6890] font-black uppercase tracking-wider mb-1">
-                              Target Model
-                            </label>
-                            <select
-                              value={targetTable}
-                              onChange={(e) => setTargetTable(e.target.value)}
-                              className="w-full bg-[#070c20]/60 border border-[#1d2d5c]/60 focus:border-blue-500 rounded-lg py-1.5 px-3 text-xs text-[#f0f5ff] outline-none font-bold"
-                            >
-                              {pages.map((p) => (
-                                <option key={p.topic} value={p.topic} className="bg-[#0c122c]">
-                                  {p.topic}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (!sourceTable || !targetTable) return;
-                              if (sourceTable === targetTable) {
-                                setValidationError("A table cannot relate to itself in this basic scheme.");
-                                return;
-                              }
-                              setValidationError(null);
-                              setRelations(prev => [
-                                ...prev,
-                                { sourceTable, relationType, targetTable }
-                              ]);
-                            }}
-                            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 py-1.5 px-4 text-xs font-bold text-white rounded-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer animate-fadeIn"
-                          >
-                            <i className="ti ti-plus" /> Add Join
-                          </button>
-                        </div>
-
-                        <div className="space-y-2">
-                          <span className="block text-[9px] text-[#6b6890] font-black uppercase tracking-wider">
-                            Configured Database Joins
-                          </span>
-                          
-                          {relations.length === 0 ? (
-                            <div className="text-center py-5 border border-dashed border-[#1d2d5c]/35 rounded-xl text-xs text-[#6b6890] italic">
-                              No joins modeled yet. Add one above.
-                            </div>
-                          ) : (
-                            <div className="space-y-1.5">
-                              {relations.map((r, idx) => (
-                                <div
-                                  key={idx}
-                                  className="flex items-center justify-between bg-blue-950/10 border border-blue-500/10 rounded-xl px-4 py-2 text-xs"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <span className="font-bold text-[#f0f5ff]">{r.sourceTable}</span>
-                                    <span className="text-[9px] bg-blue-500/10 border border-blue-500/20 text-blue-400 font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">
-                                      {r.relationType}
-                                    </span>
-                                    <span className="font-bold text-[#f0f5ff]">{r.targetTable}</span>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setRelations(prev => {
-                                        const copy = [...prev];
-                                        copy.splice(idx, 1);
-                                        return copy;
-                                      });
-                                    }}
-                                    className="text-red-400/50 hover:text-red-400 p-0.5 rounded"
-                                  >
-                                    <i className="ti ti-trash text-xs" />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <RelationsEditor
+                    fk={fk}
+                    setFk={setFk}
+                    pages={pages}
+                    relations={relations}
+                    sourceTable={sourceTable}
+                    targetTable={targetTable}
+                    relationType={relationType}
+                    setSourceTable={setSourceTable}
+                    setTargetTable={setTargetTable}
+                    setRelationType={setRelationType}
+                    setValidationError={setValidationError}
+                    setRelations={setRelations}
+                  />
                 )}
 
                 {currentStep === 8 && (
-                  <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[9px] text-[#6b6890] mb-1 font-black uppercase tracking-wider">
-                          Your Name <span className="text-red-400">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Kasun Perera"
-                          value={clientName}
-                          onChange={(e) => setClientName(e.target.value)}
-                          className="w-full bg-[#121835]/30 border border-[#1d2d5c]/60 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/25 focus:outline-none rounded-lg p-2 text-xs text-[#f0f5ff] font-medium"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[9px] text-[#6b6890] mb-1 font-black uppercase tracking-wider">
-                          University / Course
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="SLIIT - Software Engineering"
-                          value={clientUni}
-                          onChange={(e) => setClientUni(e.target.value)}
-                          className="w-full bg-[#121835]/30 border border-[#1d2d5c]/60 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/25 focus:outline-none rounded-lg p-2 text-xs text-[#f0f5ff] font-medium"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[9px] text-[#6b6890] mb-1 font-black uppercase tracking-wider">
-                          Your Email <span className="text-red-400">*</span>
-                        </label>
-                        <input
-                          type="email"
-                          placeholder="your@email.com"
-                          value={clientEmail}
-                          onChange={(e) => setClientEmail(e.target.value)}
-                          className="w-full bg-[#121835]/30 border border-[#1d2d5c]/60 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/25 focus:outline-none rounded-lg p-2 text-xs text-[#f0f5ff] font-medium"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[9px] text-[#6b6890] mb-1 font-black uppercase tracking-wider">
-                          WhatsApp Number
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="+94 77 123 4567"
-                          value={clientWa}
-                          onChange={(e) => setClientWa(e.target.value)}
-                          className="w-full bg-[#121835]/30 border border-[#1d2d5c]/60 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/25 focus:outline-none rounded-lg p-2 text-xs text-[#f0f5ff] font-medium"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <label className="block text-[9px] text-[#6b6890] mb-1 font-black uppercase tracking-wider">
-                          Topic Details &amp; Deadlines
-                        </label>
-                        <textarea
-                          rows={2}
-                          placeholder="Briefly describe any special deadlines or design features you need..."
-                          value={clientDesc}
-                          onChange={(e) => setClientDesc(e.target.value)}
-                          className="w-full bg-[#121835]/30 border border-[#1d2d5c]/60 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/25 focus:outline-none rounded-lg p-2 text-xs text-[#f0f5ff] resize-none font-medium"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-blue-900/30 bg-[#070c20]/40 p-3.5">
-                      <span className="block text-[9px] font-black uppercase tracking-widest text-blue-400 mb-2">
-                        Pricing Summary
-                      </span>
-
-                      <div className="space-y-1 max-h-[80px] overflow-y-auto pr-1">
-                        {breakdown.map((item) => (
-                          <div
-                            key={item.label}
-                            className="flex items-center justify-between border-b border-blue-900/10 pb-1 text-xs"
-                          >
-                            <span className="text-[#c0bdd8] font-medium">{item.label}</span>
-                            <span className="font-bold text-blue-300">
-                              {item.val.toLocaleString()} LKR
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="mt-2.5 flex items-baseline justify-between border-t border-blue-900/30 pt-2">
-                        <span className="text-xs font-bold text-[#f0f5ff]">Total Est</span>
-                        <span className="text-base font-black bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                          {total.toLocaleString()} LKR
-                        </span>
-                      </div>
-
-                      <div className="mt-1 text-right text-[9px] text-[#6b6890] font-medium">
-                        Timeline: {days}–{days + 2} working days
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <button
-                        type="button"
-                        onClick={handleOpenWhatsAppManual}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-600/55 bg-emerald-900/70 hover:bg-emerald-800/80 py-2.5 text-xs sm:text-sm font-bold text-emerald-200 transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.1)] active:scale-98"
-                      >
-                        <i className="ti ti-brand-whatsapp text-sm" /> Send Project Configuration to Dev+
-                      </button>
-
-                      {successMsgVisible && (
-                        <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/15 py-2 text-center text-xs text-emerald-400 font-semibold animate-fadeIn">
-                          Project details sent successfully! Dev+ will message you back shortly.
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <ContactStep
+                    clientName={clientName}
+                    clientUni={clientUni}
+                    clientEmail={clientEmail}
+                    clientWa={clientWa}
+                    clientDesc={clientDesc}
+                    setClientName={setClientName}
+                    setClientUni={setClientUni}
+                    setClientEmail={setClientEmail}
+                    setClientWa={setClientWa}
+                    setClientDesc={setClientDesc}
+                    breakdown={quote.breakdown}
+                    total={quote.total}
+                    days={quote.days}
+                    onWhatsApp={openWhatsApp}
+                    successMsgVisible={successMsgVisible}
+                  />
                 )}
               </div>
 
-              <div className="flex-shrink-0 border-t border-[#1d2d5c]/35 bg-[#070c20]/80 px-4 py-3 flex items-center justify-between z-10">
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="flex items-center gap-1.5 rounded-lg border border-[#1d2d5c]/60 bg-[#121835]/35 py-1.5 px-3 text-xs font-bold text-[#c0bdd8] hover:border-blue-500/40 hover:bg-[#121835]/50 active:scale-95 transition-all cursor-pointer"
-                >
+              <div className="flex items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-4 py-4 sm:px-6">
+                <button type="button" onClick={handleBack} className="btn-secondary">
                   <i className="ti ti-arrow-left" /> Back
                 </button>
-                
-                <button
-                  type="button"
-                  onClick={() => setSummaryDrawerOpen(true)}
-                  className="lg:hidden flex items-center gap-1 rounded-full bg-blue-500/10 border border-blue-500/25 px-3 py-1 text-[10px] font-black text-blue-400 active:scale-95 transition-all"
-                >
-                  <i className="ti ti-receipt text-xs" /> {total.toLocaleString()} LKR
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 py-1.5 px-4 text-xs font-bold text-white active:scale-95 transition-all cursor-pointer shadow-md shadow-blue-950/30"
-                >
+                <button type="button" onClick={handleNext} className="btn-primary">
                   {currentStep === STEPS - 1 ? (
                     <>
                       <i className="ti ti-file-invoice" /> Compile Quote
@@ -1418,198 +662,528 @@ export default function Home() {
                 </button>
               </div>
             </div>
+          )}
+        </section>
 
-            {/* Sidebar summary (Desktop only) */}
-            <div className="hidden lg:flex lg:col-span-3 flex-col glass-panel rounded-2xl p-4 overflow-y-auto relative">
-              <span className="text-[10px] font-black text-[#6b6890] uppercase tracking-widest mb-3 border-b border-[#1d2d5c]/25 pb-2 block">
-                Active Setup Summary
-              </span>
-
-              <div className="space-y-3.5 flex-grow">
-                <div className="space-y-1">
-                  <span className="text-[9px] text-[#6b6890] font-black uppercase tracking-wider block">Framework &amp; Language</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                      frontend ? "bg-blue-500/10 border-blue-500/30 text-blue-300" : "bg-[#121835]/30 border-transparent text-[#6b6890]/40"
-                    }`}>
-                      {frontend || "No Frontend"}
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                      language ? "bg-violet-500/10 border-violet-500/30 text-violet-300" : "bg-[#121835]/30 border-transparent text-[#6b6890]/40"
-                    }`}>
-                      {language || "No Language"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[9px] text-[#6b6890] font-black uppercase tracking-wider block">Backend &amp; DB Layer</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                      backend ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-300" : "bg-[#121835]/30 border-transparent text-[#6b6890]/40"
-                    }`}>
-                      {backend || "No Backend"}
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                      database ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300" : "bg-[#121835]/30 border-transparent text-[#6b6890]/40"
-                    }`}>
-                      {database || "No DB Engine"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[9px] text-[#6b6890] font-black uppercase tracking-wider block">Enabled Modules</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      { show: login, text: "Auth UI", color: "bg-blue-950/45 text-blue-400 border border-blue-500/20" },
-                      { show: encrypt, text: "Bcrypt Hashing", color: "bg-emerald-950/45 text-emerald-400 border border-emerald-500/20" },
-                      { show: jwt, text: "Stateless JWT", color: "bg-cyan-950/45 text-cyan-400 border border-cyan-500/20" },
-                      { show: admin, text: "Admin Panel", color: "bg-amber-950/45 text-amber-400 border border-amber-500/20" },
-                      { show: email, text: "SMTP Email", color: "bg-rose-950/45 text-rose-400 border border-rose-500/20" },
-                      { show: upload, text: "Cloud Uploads", color: "bg-purple-950/45 text-purple-400 border border-purple-500/20" },
-                      { show: search, text: "Search Index", color: "bg-teal-950/45 text-teal-400 border border-teal-500/20" },
-                    ].filter(x => x.show).map((module, idx) => (
-                      <span key={idx} className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${module.color}`}>
-                        {module.text}
-                      </span>
-                    ))}
-                    {!login && !encrypt && !jwt && !admin && !email && !upload && !search && (
-                      <span className="text-[10px] text-[#6b6890] italic">None selected</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[9px] text-[#6b6890] font-black uppercase tracking-wider block">Database Schema</span>
-                  <span className="text-xs text-[#c0bdd8] font-bold">
-                    <i className="ti ti-table text-blue-400 mr-1" />
-                    {pages.length} Table Models ({pages.reduce((acc, p) => acc + p.fields.length, 0)} Attributes)
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[9px] text-[#6b6890] font-black uppercase tracking-wider block">Relational Connections</span>
-                  <span className="text-xs text-[#c0bdd8] font-bold">
-                    <i className="ti ti-git-fork text-blue-400 mr-1" />
-                    {fk ? `${relations.length} Active Joins` : "Disabled"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 border-t border-[#1d2d5c]/35 pt-3">
-                <span className="text-[9px] text-[#6b6890] font-black uppercase tracking-wider block mb-1">Live Estimate</span>
-                <div className="text-xl font-black bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                  {total.toLocaleString()} LKR
-                </div>
-                <div className="text-[9px] text-[#6b6890] font-semibold mt-0.5">
-                  Est. Delivery: {days}–{days + 2} days
-                </div>
-              </div>
-            </div>
-
-          </div>
+        {currentStep > 0 && (
+        <aside className="hidden xl:block">
+          <SummaryPanel
+            frontend={frontend}
+            language={language}
+            backend={backend}
+            database={database}
+            modules={modules}
+            pages={pages}
+            fk={fk}
+            relations={relations}
+            total={quote.total}
+            days={quote.days}
+          />
+        </aside>
         )}
       </main>
 
-      {/* Mobile drawer overlay */}
-      {summaryDrawerOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden flex items-end justify-center bg-[#030712]/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full bg-[#0a0f20] border-t border-[#1d2d5c]/60 rounded-t-3xl p-5 shadow-[0_-10px_30px_rgba(0,102,255,0.15)] max-h-[75vh] flex flex-col overflow-hidden animate-slideIn">
-            <div className="flex items-center justify-between border-b border-[#1d2d5c]/25 pb-3 mb-4">
-              <span className="text-xs font-black text-[#6b6890] uppercase tracking-wider flex items-center gap-1.5">
-                <i className="ti ti-receipt text-blue-400 text-sm" /> Current Setup Config
-              </span>
-              <button
-                type="button"
-                onClick={() => setSummaryDrawerOpen(false)}
-                className="text-[#6b6890] hover:text-[#f0f5ff] p-1 bg-[#121835]/30 rounded-full"
-              >
-                <i className="ti ti-x text-sm" />
+      {summaryDrawerOpen && currentStep > 0 && (
+        <div className="fixed inset-0 z-40 flex items-end bg-slate-950/60 p-3 backdrop-blur-sm lg:hidden">
+          <div className="max-h-[82vh] w-full overflow-y-auto rounded-[28px] bg-white p-4 shadow-2xl">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-lg font-black text-slate-950">Project summary</h2>
+              <button type="button" onClick={() => setSummaryDrawerOpen(false)} className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 text-slate-600">
+                <i className="ti ti-x" />
               </button>
             </div>
-
-            <div className="flex-grow space-y-4 overflow-y-auto pr-1 pb-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[#121835]/15 border border-[#1d2d5c]/30 p-2.5 rounded-xl">
-                  <span className="block text-[8px] text-[#6b6890] font-black uppercase tracking-wider mb-1">Frontend</span>
-                  <span className="text-xs font-bold text-blue-300">{frontend || "None selected"}</span>
-                </div>
-                <div className="bg-[#121835]/15 border border-[#1d2d5c]/30 p-2.5 rounded-xl">
-                  <span className="block text-[8px] text-[#6b6890] font-black uppercase tracking-wider mb-1">Language</span>
-                  <span className="text-xs font-bold text-violet-300">{language || "None selected"}</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[#121835]/15 border border-[#1d2d5c]/30 p-2.5 rounded-xl">
-                  <span className="block text-[8px] text-[#6b6890] font-black uppercase tracking-wider mb-1">Backend</span>
-                  <span className="text-xs font-bold text-cyan-300">{backend || "None selected"}</span>
-                </div>
-                <div className="bg-[#121835]/15 border border-[#1d2d5c]/30 p-2.5 rounded-xl">
-                  <span className="block text-[8px] text-[#6b6890] font-black uppercase tracking-wider mb-1">Database</span>
-                  <span className="text-xs font-bold text-emerald-300">{database || "None selected"}</span>
-                </div>
-              </div>
-
-              <div className="bg-[#121835]/15 border border-[#1d2d5c]/30 p-3 rounded-xl space-y-1.5">
-                <span className="block text-[8px] text-[#6b6890] font-black uppercase tracking-wider">Active Modules</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    { show: login, text: "Auth UI", color: "bg-blue-950/45 text-blue-400 border border-blue-500/15" },
-                    { show: encrypt, text: "Bcrypt", color: "bg-emerald-950/45 text-emerald-400 border border-emerald-500/15" },
-                    { show: jwt, text: "JWT Stateless", color: "bg-cyan-950/45 text-cyan-400 border border-cyan-500/15" },
-                    { show: admin, text: "Admin Panel", color: "bg-amber-950/45 text-amber-400 border border-amber-500/15" },
-                    { show: email, text: "SMTP Email", color: "bg-rose-950/45 text-rose-400 border border-rose-500/15" },
-                    { show: upload, text: "Cloud Uploads", color: "bg-purple-950/45 text-purple-400 border border-purple-500/15" },
-                    { show: search, text: "Search Index", color: "bg-teal-950/45 text-teal-400 border border-teal-500/15" },
-                  ].filter(x => x.show).map((module, idx) => (
-                    <span key={idx} className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${module.color}`}>
-                      {module.text}
-                    </span>
-                  ))}
-                  {!login && !encrypt && !jwt && !admin && !email && !upload && !search && (
-                    <span className="text-[10px] text-[#6b6890] italic">None selected</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[#121835]/15 border border-[#1d2d5c]/30 p-2.5 rounded-xl flex items-center gap-2">
-                  <i className="ti ti-table text-blue-400 text-base" />
-                  <div>
-                    <span className="block text-[8px] text-[#6b6890] font-black uppercase tracking-wider">Tables</span>
-                    <span className="text-xs font-bold text-[#f0f5ff]">{pages.length} Models</span>
-                  </div>
-                </div>
-                <div className="bg-[#121835]/15 border border-[#1d2d5c]/30 p-2.5 rounded-xl flex items-center gap-2">
-                  <i className="ti ti-git-fork text-blue-400 text-base" />
-                  <div>
-                    <span className="block text-[8px] text-[#6b6890] font-black uppercase tracking-wider">Joins</span>
-                    <span className="text-xs font-bold text-[#f0f5ff]">{fk ? relations.length : 0} Joins</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-[#1d2d5c]/25 pt-4 bg-[#0a0f20] flex items-center justify-between">
-              <div>
-                <span className="block text-[8px] text-[#6b6890] font-black uppercase tracking-wider">Total Est</span>
-                <span className="text-lg font-black bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                  {total.toLocaleString()} LKR
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSummaryDrawerOpen(false)}
-                className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 px-6 rounded-xl cursor-pointer"
-              >
-                Continue Setup
-              </button>
-            </div>
+            <SummaryPanel
+              frontend={frontend}
+              language={language}
+              backend={backend}
+              database={database}
+              modules={modules}
+              pages={pages}
+              fk={fk}
+              relations={relations}
+              total={quote.total}
+              days={quote.days}
+              compact
+            />
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function getStepTitle(step: number) {
+  return [
+    "Build a professional web project quote",
+    "Choose the frontend experience",
+    "Select the development language",
+    "Pick your backend architecture",
+    "Choose the database layer",
+    "Add the features your project needs",
+    "Model your pages and data",
+    "Connect your database tables",
+    "Share the request with Dev+",
+  ][step];
+}
+
+function WelcomeScreen({ quoteTotal, days, onStart }: { quoteTotal: number; days: number; onStart: () => void }) {
+  return (
+    <div className="space-y-5">
+    <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl shadow-slate-200/70">
+      <div className="grid min-h-[calc(100vh-118px)] lg:grid-cols-[1.04fr_0.96fr]">
+        <div className="flex flex-col justify-between p-5 sm:p-8 lg:p-10">
+          <div>
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-black text-teal-800">
+              <i className="ti ti-sparkles text-base" /> Student and business web projects
+            </div>
+            <h1 className="max-w-2xl text-4xl font-black tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
+              Plan your web project with confidence
+            </h1>
+            <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600">
+              Build a clear quote by choosing your stack, features, pages, database models, and delivery details. No guessing, no messy back-and-forth.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button type="button" onClick={onStart} className="btn-primary px-6 py-3 text-sm">
+                Start configuration <i className="ti ti-arrow-right" />
+              </button>
+              <a href="mailto:anuk200101@gmail.com" className="btn-secondary px-6 py-3 text-sm">
+                <i className="ti ti-mail" /> Email Dev+
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-10 grid gap-3 sm:grid-cols-3">
+            {[
+              ["Live estimate", `${quoteTotal.toLocaleString()} LKR`],
+              ["Delivery window", `${days}-${days + 2} days`],
+              ["Support", "WhatsApp ready"],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">{label}</p>
+                <p className="mt-2 text-lg font-black text-slate-950">{value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="relative min-h-[420px] bg-slate-950 p-6 text-white sm:p-8 lg:p-10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(45,212,191,0.28),transparent_35%),radial-gradient(circle_at_70%_0%,rgba(251,191,36,0.18),transparent_28%),linear-gradient(135deg,#0f172a,#111827_55%,#022c22)]" />
+          <div className="relative flex h-full flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <Image src="/logo-square.jpg" alt="Dev+ app mark" width={92} height={92} className="rounded-3xl border border-white/15 bg-white p-2 shadow-2xl" priority />
+              <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white/70">
+                Quote OS
+              </span>
+            </div>
+            <div className="mt-10 space-y-4">
+              {[
+                ["Choose stack", "Frontend, backend, language, database"],
+                ["Design schema", "Tables, attributes, CRUD actions"],
+                ["Confirm price", "Instant LKR estimate and timeline"],
+              ].map(([item, desc], idx) => (
+                <div key={item} className="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
+                  <div className="flex items-center gap-4">
+                    <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white text-sm font-black text-slate-950">{idx + 1}</span>
+                    <div>
+                      <p className="font-black">{item}</p>
+                      <p className="text-sm text-white/55">{desc}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section className="rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-lg shadow-slate-200/60 sm:p-7">
+      <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-teal-700">Feedback</p>
+          <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">What students say</h2>
+        </div>
+        <p className="max-w-md text-sm font-semibold leading-6 text-slate-500">
+          Sample project feedback shown to make the start page feel trustworthy before users begin the quote flow.
+        </p>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {feedbackItems.map((item) => (
+          <article key={item.name} className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-black text-slate-950">{item.name}</h3>
+                <p className="mt-1 text-xs font-bold text-slate-500">{item.role}</p>
+              </div>
+              <div className="flex text-amber-400" aria-label="5 star feedback">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <i key={star} className="ti ti-star-filled text-sm" />
+                ))}
+              </div>
+            </div>
+            <p className="mt-4 text-sm leading-7 text-slate-700">&ldquo;{item.feedback}&rdquo;</p>
+          </article>
+        ))}
+      </div>
+    </section>
+    </div>
+  );
+}
+
+function ChoiceGrid({
+  items,
+  value,
+  onSelect,
+  clearError,
+  cols,
+}: {
+  items: { name: string; sub: string; icon: string }[];
+  value: string | null;
+  onSelect: (value: string) => void;
+  clearError: () => void;
+  cols: string;
+}) {
+  return (
+    <div className={`grid gap-4 ${cols}`}>
+      {items.map((item) => {
+        const active = value === item.name;
+        return (
+          <button
+            key={item.name}
+            type="button"
+            onClick={() => {
+              onSelect(item.name);
+              clearError();
+            }}
+            className={`option-card text-left ${active ? "is-active" : ""}`}
+          >
+            <span className="flex items-start justify-between gap-3">
+              <span className={`grid h-12 w-12 place-items-center rounded-2xl text-2xl ${active ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-500"}`}>
+                <i className={`ti ${item.icon}`} />
+              </span>
+              <span className={`grid h-7 w-7 place-items-center rounded-full border ${active ? "border-teal-500 bg-teal-500 text-white" : "border-slate-200 text-transparent"}`}>
+                <i className="ti ti-check text-sm" />
+              </span>
+            </span>
+            <span className="mt-6 block text-lg font-black text-slate-950">{item.name}</span>
+            <span className="mt-2 block text-sm leading-6 text-slate-500">{item.sub}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ToggleCard({ label, desc, active, set, icon }: { label: string; desc: string; active: boolean; set: (value: boolean) => void; icon: string }) {
+  return (
+    <button type="button" onClick={() => set(!active)} className={`option-card flex items-center justify-between gap-4 text-left ${active ? "is-active" : ""}`}>
+      <span className="flex items-center gap-4">
+        <span className={`grid h-12 w-12 place-items-center rounded-2xl text-xl ${active ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-500"}`}>
+          <i className={`ti ${icon}`} />
+        </span>
+        <span>
+          <span className="block font-black text-slate-950">{label}</span>
+          <span className="mt-1 block text-sm font-bold text-slate-400">{desc}</span>
+        </span>
+      </span>
+      <span className={`relative h-7 w-12 rounded-full transition ${active ? "bg-teal-500" : "bg-slate-200"}`}>
+        <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition ${active ? "left-6" : "left-1"}`} />
+      </span>
+    </button>
+  );
+}
+
+function SchemaEditor(props: {
+  pages: PageSpec[];
+  activePageIdx: number;
+  activePage: PageSpec;
+  setActivePageIdx: (idx: number) => void;
+  handleAddPage: () => void;
+  handleRemovePage: (idx: number, event: React.MouseEvent) => void;
+  updatePage: (idx: number, patch: Partial<PageSpec>) => void;
+  handleCrudToggle: (pageIdx: number, key: CrudKey) => void;
+  handleAddField: (pageIdx: number) => void;
+  handleRemoveField: (pageIdx: number, fieldIdx: number) => void;
+  updateField: (pageIdx: number, fieldIdx: number, patch: Partial<FieldSpec>) => void;
+}) {
+  const { pages, activePageIdx, activePage } = props;
+  return (
+    <div className="grid gap-4 xl:grid-cols-[190px_minmax(0,1fr)]">
+      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Tables</p>
+          <button type="button" onClick={props.handleAddPage} className="grid h-8 w-8 place-items-center rounded-full bg-slate-950 text-white">
+            <i className="ti ti-plus" />
+          </button>
+        </div>
+        <div className="flex gap-2 overflow-x-auto xl:block xl:space-y-2">
+          {pages.map((page, idx) => (
+            <div key={`${page.topic}-${idx}`} className={`min-w-40 rounded-2xl border bg-white/60 p-2 xl:w-full ${activePageIdx === idx ? "border-teal-300 bg-white shadow-sm" : "border-slate-200"}`}>
+              <div className="flex items-start justify-between gap-2">
+                <button type="button" onClick={() => props.setActivePageIdx(idx)} className="min-w-0 flex-1 text-left">
+                  <span className="block truncate text-sm font-black text-slate-950">{page.topic || `Table ${idx + 1}`}</span>
+                  <span className="mt-2 block text-xs font-bold text-slate-400">{page.fields.length} attributes</span>
+                </button>
+                {pages.length > 1 && (
+                  <button type="button" onClick={(event) => props.handleRemovePage(idx, event)} aria-label={`Remove ${page.topic || `Table ${idx + 1}`}`} className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-full text-slate-400 hover:bg-rose-50 hover:text-rose-600">
+                    <i className="ti ti-x text-xs" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-3xl border border-slate-200 bg-white p-4">
+        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <label className="block">
+            <span className="form-label">Table name</span>
+            <input value={activePage.topic} onChange={(e) => props.updatePage(activePageIdx, { topic: e.target.value })} className="form-input mt-2" placeholder="Products" />
+          </label>
+          <div>
+            <span className="form-label">Actions</span>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(["create", "read", "update", "delete", "search"] as CrudKey[]).map((key) => (
+                <button key={key} type="button" onClick={() => props.handleCrudToggle(activePageIdx, key)} className={`rounded-full border px-3 py-2 text-xs font-black uppercase ${activePage[key] ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-500"}`}>
+                  {key}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-3">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Attributes</p>
+            <button type="button" onClick={() => props.handleAddField(activePageIdx)} className="btn-secondary px-3 py-2 text-xs">
+              <i className="ti ti-plus" /> Attribute
+            </button>
+          </div>
+          <div className="space-y-2">
+            {activePage.fields.map((field, idx) => (
+              <div key={idx} className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-2 md:grid-cols-[minmax(0,1fr)_160px_44px]">
+                <input value={field.label} onChange={(e) => props.updateField(activePageIdx, idx, { label: e.target.value })} className="form-input" placeholder="field_name" />
+                <select value={field.type} onChange={(e) => props.updateField(activePageIdx, idx, { type: e.target.value })} className="form-input">
+                  {fieldTypes.map((type) => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+                <button type="button" onClick={() => props.handleRemoveField(activePageIdx, idx)} className="grid h-11 w-full place-items-center rounded-xl text-rose-500 hover:bg-rose-50">
+                  <i className="ti ti-trash" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RelationsEditor(props: {
+  fk: boolean;
+  setFk: (value: boolean) => void;
+  pages: PageSpec[];
+  relations: RelationSpec[];
+  sourceTable: string;
+  targetTable: string;
+  relationType: string;
+  setSourceTable: (value: string) => void;
+  setTargetTable: (value: string) => void;
+  setRelationType: (value: string) => void;
+  setValidationError: (value: string | null) => void;
+  setRelations: React.Dispatch<React.SetStateAction<RelationSpec[]>>;
+}) {
+  const tableOptions = props.pages.map((p) => p.topic || "Untitled");
+  const selectedSource = tableOptions.includes(props.sourceTable) ? props.sourceTable : tableOptions[0] || "";
+  const selectedTarget = tableOptions.includes(props.targetTable)
+    ? props.targetTable
+    : tableOptions[Math.min(1, tableOptions.length - 1)] || "";
+
+  return (
+    <div className="space-y-4">
+      <ToggleCard label="Enable table relationships" desc="+500 LKR" active={props.fk} set={props.setFk} icon="ti-git-fork" />
+      {props.fk && (
+        <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <SelectBox label="Source model" value={selectedSource} onChange={props.setSourceTable} options={tableOptions} />
+            <SelectBox label="Relation" value={props.relationType} onChange={props.setRelationType} options={["Has Many (1:N)", "Belongs To (1:1)", "Many to Many (M:N)"]} />
+            <SelectBox label="Target model" value={selectedTarget} onChange={props.setTargetTable} options={tableOptions} />
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (selectedSource === selectedTarget) {
+                props.setValidationError("A table cannot relate to itself in this basic setup.");
+                return;
+              }
+              const exists = props.relations.some(
+                (relation) =>
+                  relation.sourceTable === selectedSource &&
+                  relation.targetTable === selectedTarget &&
+                  relation.relationType === props.relationType
+              );
+              if (exists) {
+                props.setValidationError("This relationship is already added.");
+                return;
+              }
+              props.setValidationError(null);
+              props.setRelations((prev) => [...prev, { sourceTable: selectedSource, relationType: props.relationType, targetTable: selectedTarget }]);
+            }}
+            className="btn-primary"
+          >
+            <i className="ti ti-plus" /> Add relationship
+          </button>
+          <div className="space-y-2">
+            {props.relations.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm font-bold text-slate-400">
+                No relationships added yet.
+              </div>
+            ) : (
+              props.relations.map((relation, idx) => (
+                <div key={`${relation.sourceTable}-${idx}`} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-sm font-black text-slate-800">
+                    {relation.sourceTable} <span className="text-teal-600">{relation.relationType}</span> {relation.targetTable}
+                  </p>
+                  <button type="button" onClick={() => props.setRelations((prev) => prev.filter((_, relIdx) => relIdx !== idx))} className="grid h-9 w-9 place-items-center rounded-full text-rose-500 hover:bg-rose-50">
+                    <i className="ti ti-trash" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SelectBox({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[] }) {
+  return (
+    <label className="block">
+      <span className="form-label">{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="form-input mt-2">
+        {options.map((option, idx) => (
+          <option key={`${option}-${idx}`} value={option}>{option}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function ContactStep(props: {
+  clientName: string;
+  clientUni: string;
+  clientEmail: string;
+  clientWa: string;
+  clientDesc: string;
+  setClientName: (value: string) => void;
+  setClientUni: (value: string) => void;
+  setClientEmail: (value: string) => void;
+  setClientWa: (value: string) => void;
+  setClientDesc: (value: string) => void;
+  breakdown: { label: string; val: number }[];
+  total: number;
+  days: number;
+  onWhatsApp: () => void;
+  successMsgVisible: boolean;
+}) {
+  return (
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+        <TextInput label="Your name" required value={props.clientName} onChange={props.setClientName} placeholder="Kasun Perera" />
+        <TextInput label="University / course" value={props.clientUni} onChange={props.setClientUni} placeholder="SLIIT - Software Engineering" />
+        <TextInput label="Email" required value={props.clientEmail} onChange={props.setClientEmail} placeholder="your@email.com" type="email" />
+        <TextInput label="WhatsApp number" value={props.clientWa} onChange={props.setClientWa} placeholder="+94 77 123 4567" />
+        <label className="block">
+          <span className="form-label">Topic details and deadlines</span>
+          <textarea value={props.clientDesc} onChange={(e) => props.setClientDesc(e.target.value)} rows={5} className="form-input mt-2 resize-none" placeholder="Briefly describe the project topic, deadline, and special requirements." />
+        </label>
+      </div>
+      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 lg:sticky lg:top-24">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Pricing summary</p>
+        <div className="mt-4 space-y-2">
+          {props.breakdown.map((item) => (
+            <div key={item.label} className="flex justify-between gap-3 border-b border-slate-200 pb-2 text-sm">
+              <span className="font-bold text-slate-600">{item.label}</span>
+              <span className="font-black text-slate-950">{item.val.toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-5 rounded-3xl bg-slate-950 p-5 text-white">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-white/45">Total estimate</p>
+          <p className="mt-2 text-3xl font-black">{props.total.toLocaleString()} LKR</p>
+          <p className="mt-1 text-sm font-bold text-teal-200">{props.days}-{props.days + 2} working days</p>
+        </div>
+        <button type="button" onClick={props.onWhatsApp} className="mt-4 w-full justify-center rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500">
+          <i className="ti ti-brand-whatsapp mr-2" /> Send on WhatsApp
+        </button>
+        {props.successMsgVisible && <p className="mt-3 rounded-2xl bg-emerald-50 p-3 text-center text-sm font-bold text-emerald-700">Request opened in WhatsApp.</p>}
+      </div>
+    </div>
+  );
+}
+
+function TextInput({ label, value, onChange, placeholder, required = false, type = "text" }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; required?: boolean; type?: string }) {
+  return (
+    <label className="block">
+      <span className="form-label">{label} {required && <span className="text-rose-500">*</span>}</span>
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="form-input mt-2" placeholder={placeholder} required={required} />
+    </label>
+  );
+}
+
+function SummaryPanel(props: {
+  frontend: string | null;
+  language: string | null;
+  backend: string | null;
+  database: string | null;
+  modules: { label: string; active: boolean; color: string }[];
+  pages: PageSpec[];
+  fk: boolean;
+  relations: RelationSpec[];
+  total: number;
+  days: number;
+  compact?: boolean;
+}) {
+  return (
+    <div className={`${props.compact ? "" : "surface-panel sticky top-24"} p-4`}>
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Live estimate</p>
+      <div className="mt-3 rounded-3xl bg-slate-950 p-5 text-white">
+        <p className="text-3xl font-black">{props.total.toLocaleString()} LKR</p>
+        <p className="mt-1 text-sm font-bold text-teal-200">{props.days}-{props.days + 2} working days</p>
+      </div>
+      <div className="mt-4 grid gap-3">
+        {[
+          ["Frontend", props.frontend || "Not selected"],
+          ["Language", props.language || "Not selected"],
+          ["Backend", props.backend || "Not selected"],
+          ["Database", props.database || "Not selected"],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-2xl border border-slate-200 bg-white p-3">
+            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">{label}</p>
+            <p className="mt-1 text-sm font-black text-slate-950">{value}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-3">
+        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Modules</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {props.modules.length ? props.modules.map((module) => (
+            <span key={module.label} className="rounded-full bg-teal-50 px-3 py-1 text-xs font-black text-teal-700">{module.label}</span>
+          )) : <span className="text-sm font-bold text-slate-400">None selected</span>}
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-3">
+          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Tables</p>
+          <p className="mt-1 text-xl font-black text-slate-950">{props.pages.length}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-3">
+          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Joins</p>
+          <p className="mt-1 text-xl font-black text-slate-950">{props.fk ? props.relations.length : 0}</p>
+        </div>
+      </div>
     </div>
   );
 }
