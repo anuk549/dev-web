@@ -1,9 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
+import jsPDF from "jspdf";
 
-const DEV_PHONE = "94771234567";
+const DEV_PHONE = normalizeWhatsAppNumber(
+  process.env.NEXT_PUBLIC_DEV_WHATSAPP_NUMBER ||
+    process.env.NEXT_PUBLIC_DEV_PHONE ||
+    "",
+);
+const LOGO_SRC = "/logo.jpg";
 const STEPS = 9;
 
 type CrudKey = "create" | "read" | "update" | "delete" | "search";
@@ -357,8 +363,17 @@ export default function Home() {
   };
 
   const openWhatsApp = () => {
+    if (!DEV_PHONE) {
+      showMissingWhatsAppNumber();
+      return;
+    }
+
     const msg = encodeURIComponent(getWhatsAppMessage());
     window.open(`https://wa.me/${DEV_PHONE}?text=${msg}`, "_blank");
+  };
+
+  const showMissingWhatsAppNumber = () => {
+    window.alert("WhatsApp number is not configured. Set NEXT_PUBLIC_DEV_WHATSAPP_NUMBER and redeploy.");
   };
 
   const triggerQuoteGeneration = () => {
@@ -392,6 +407,150 @@ export default function Home() {
       }
     }, 520);
   };
+
+  const generatePDF = useCallback(async () => {
+    try {
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 15;
+      const contentWidth = pageWidth - margin * 2;
+      let y = 15;
+
+      // Helper function to add text
+      const addText = (text: string, x: number, yPos: number, size: number, bold: boolean = false, color: [number, number, number] = [0, 0, 0]) => {
+        pdf.setFontSize(size);
+        if (bold) pdf.setFont("helvetica", "bold");
+        else pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(color[0], color[1], color[2]);
+        pdf.text(text, x, yPos);
+      };
+
+      // Helper to add a filled rectangle
+      const addBox = (x: number, y: number, w: number, h: number, color: [number, number, number]) => {
+        pdf.setFillColor(color[0], color[1], color[2]);
+        pdf.rect(x, y, w, h, "F");
+      };
+
+      // Header
+      addBox(margin, y - 5, contentWidth, 25, [15, 23, 42]);
+      addText("Dev+ Project Quote", margin + 5, y + 8, 18, true, [255, 255, 255]);
+      addText(`Date: ${new Date().toLocaleDateString()}`, margin + 5, y + 16, 8, false, [200, 200, 200]);
+      y += 28;
+
+      // Client info (if available)
+      if (clientName || clientEmail) {
+        addText("Client Information", margin, y, 12, true);
+        y += 8;
+        if (clientName) {
+          addText(`Name: ${clientName}`, margin + 5, y, 10);
+          y += 6;
+        }
+        if (clientEmail) {
+          addText(`Email: ${clientEmail}`, margin + 5, y, 10);
+          y += 6;
+        }
+        if (clientUni) {
+          addText(`University/Course: ${clientUni}`, margin + 5, y, 10);
+          y += 6;
+        }
+        y += 4;
+      }
+
+      // Tech Stack
+      addText("Technology Stack", margin, y, 12, true);
+      y += 8;
+      const stackItems = [
+        ["Frontend", frontend || "Not selected"],
+        ["Language", language || "Not selected"],
+        ["Backend", backend || "Not selected"],
+        ["Database", database || "Not selected"],
+      ];
+      stackItems.forEach(([label, value]) => {
+        addText(`${label}:`, margin + 5, y, 10, true);
+        addText(value, margin + 40, y, 10, false);
+        y += 6;
+      });
+      y += 4;
+
+      // Modules/Features
+      const activeModules = modules.filter(m => m.active);
+      if (activeModules.length > 0) {
+        addText("Features & Modules", margin, y, 12, true);
+        y += 8;
+        activeModules.forEach(mod => {
+          addText(`• ${mod.label}`, margin + 5, y, 10);
+          y += 6;
+        });
+        y += 4;
+      }
+
+      // Pages/Tables
+      addText("Database Tables", margin, y, 12, true);
+      y += 8;
+      pages.forEach((page, idx) => {
+        const crudKeys: CrudKey[] = ["create", "read", "update", "delete", "search"];
+        const ops = crudKeys
+          .filter(key => page[key])
+          .map(key => key.toUpperCase())
+          .join("/");
+        addText(`${idx + 1}. ${page.topic || `Table ${idx + 1}`} [${ops || "None"}]`, margin + 5, y, 10);
+        y += 6;
+        page.fields.forEach(field => {
+          addText(`   - ${field.label || "unnamed"}: ${field.type}`, margin + 10, y, 9);
+          y += 5;
+        });
+        y += 2;
+      });
+      y += 4;
+
+      // Relationships
+      if (fk && relations.length > 0) {
+        addText("Database Relationships", margin, y, 12, true);
+        y += 8;
+        relations.forEach(rel => {
+          addText(`• ${rel.sourceTable} ${rel.relationType} ${rel.targetTable}`, margin + 5, y, 10);
+          y += 6;
+        });
+        y += 4;
+      }
+
+      // Pricing
+      y += 5;
+      addBox(margin, y, contentWidth, 30, [241, 245, 249]);
+      addText("Pricing Summary", margin + 5, y + 8, 12, true);
+      y += 14;
+      quote.breakdown.forEach(item => {
+        addText(item.label, margin + 5, y, 10);
+        addText(`${item.val.toLocaleString()} LKR`, pageWidth - margin - 30, y, 10, true);
+        y += 6;
+      });
+      y += 4;
+
+      // Total
+      addBox(margin, y, contentWidth, 12, [15, 23, 42]);
+      addText("Total Estimate", margin + 5, y + 8, 12, true, [255, 255, 255]);
+      addText(`${quote.total.toLocaleString()} LKR`, pageWidth - margin - 30, y + 8, 14, true, [255, 255, 255]);
+      y += 16;
+
+      // Delivery
+      addText(`Estimated Delivery: ${quote.days}-${quote.days + 2} working days`, margin, y, 10, false, [45, 212, 191]);
+
+      // Footer
+      const footerY = 280;
+      addBox(margin, footerY, contentWidth, 10, [241, 245, 249]);
+      addText("Thank you for choosing Dev+!", margin + 5, footerY + 7, 9, false, [100, 116, 139]);
+
+      pdf.save(`DevPlus-Quote-${clientName.replace(/\s+/g, "-") || "Project"}.pdf`);
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      window.alert("Failed to generate PDF. Please try again.");
+    }
+  }, [clientName, frontend, language, backend, database, modules, pages, fk, relations, quote]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-app-shell text-slate-950 selection:bg-teal-200/70">
@@ -432,13 +591,18 @@ export default function Home() {
       <header className="sticky top-0 z-30 border-b border-slate-900/10 bg-white/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <button type="button" onClick={() => setCurrentStep(0)} className="flex items-center gap-3" aria-label="Go to Dev+ welcome page">
-            <Image src="/logo.png" alt="Dev+ logo" width={112} height={40} className="h-9 w-auto object-contain" priority />
+            <Image src={LOGO_SRC} alt="Dev+ logo" width={112} height={40} className="h-9 w-auto object-contain" priority />
             <span className="hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600 sm:inline-flex">
               Project Studio
             </span>
           </button>
           <div className="flex items-center gap-2">
-            <a href={`https://wa.me/${DEV_PHONE}`} target="_blank" rel="noreferrer" className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 shadow-sm sm:inline-flex">
+            <a href={DEV_PHONE ? `https://wa.me/${DEV_PHONE}` : "#"} onClick={(event) => {
+              if (!DEV_PHONE) {
+                event.preventDefault();
+                showMissingWhatsAppNumber();
+              }
+            }} target="_blank" rel="noreferrer" className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 shadow-sm sm:inline-flex">
               <i className="ti ti-brand-whatsapp text-base" /> WhatsApp
             </a>
             {currentStep > 0 ? (
@@ -640,6 +804,7 @@ export default function Home() {
                     total={quote.total}
                     days={quote.days}
                     onWhatsApp={openWhatsApp}
+                    onDownloadPDF={generatePDF}
                     successMsgVisible={successMsgVisible}
                   />
                 )}
@@ -726,6 +891,10 @@ function getStepTitle(step: number) {
   ][step];
 }
 
+function normalizeWhatsAppNumber(phone: string) {
+  return phone.replace(/\D/g, "");
+}
+
 function WelcomeScreen({ quoteTotal, days, onStart }: { quoteTotal: number; days: number; onStart: () => void }) {
   return (
     <div className="space-y-5">
@@ -769,7 +938,7 @@ function WelcomeScreen({ quoteTotal, days, onStart }: { quoteTotal: number; days
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(45,212,191,0.28),transparent_35%),radial-gradient(circle_at_70%_0%,rgba(251,191,36,0.18),transparent_28%),linear-gradient(135deg,#0f172a,#111827_55%,#022c22)]" />
           <div className="relative flex h-full flex-col justify-between">
             <div className="flex items-center justify-between">
-              <Image src="/logo-square.jpg" alt="Dev+ app mark" width={92} height={92} className="rounded-3xl border border-white/15 bg-white p-2 shadow-2xl" priority />
+              <Image src={LOGO_SRC} alt="Dev+ app mark" width={92} height={92} className="rounded-3xl border border-white/15 bg-white p-2 shadow-2xl" priority />
               <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white/70">
                 Quote OS
               </span>
@@ -1086,6 +1255,7 @@ function ContactStep(props: {
   total: number;
   days: number;
   onWhatsApp: () => void;
+  onDownloadPDF: () => void;
   successMsgVisible: boolean;
 }) {
   return (
@@ -1094,7 +1264,7 @@ function ContactStep(props: {
         <TextInput label="Your name" required value={props.clientName} onChange={props.setClientName} placeholder="Kasun Perera" />
         <TextInput label="University / course" value={props.clientUni} onChange={props.setClientUni} placeholder="SLIIT - Software Engineering" />
         <TextInput label="Email" required value={props.clientEmail} onChange={props.setClientEmail} placeholder="your@email.com" type="email" />
-        <TextInput label="WhatsApp number" value={props.clientWa} onChange={props.setClientWa} placeholder="+94 77 123 4567" />
+        <TextInput label="WhatsApp number" value={props.clientWa} onChange={props.setClientWa} placeholder="+94 7X XXX XXXX" />
         <label className="block">
           <span className="form-label">Topic details and deadlines</span>
           <textarea value={props.clientDesc} onChange={(e) => props.setClientDesc(e.target.value)} rows={5} className="form-input mt-2 resize-none" placeholder="Briefly describe the project topic, deadline, and special requirements." />
@@ -1117,6 +1287,9 @@ function ContactStep(props: {
         </div>
         <button type="button" onClick={props.onWhatsApp} className="mt-4 w-full justify-center rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500">
           <i className="ti ti-brand-whatsapp mr-2" /> Send on WhatsApp
+        </button>
+        <button type="button" onClick={props.onDownloadPDF} className="mt-3 w-full justify-center rounded-2xl border-2 border-slate-950 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-slate-100">
+          <i className="ti ti-file-download mr-2" /> Download PDF Quote
         </button>
         {props.successMsgVisible && <p className="mt-3 rounded-2xl bg-emerald-50 p-3 text-center text-sm font-bold text-emerald-700">Request opened in WhatsApp.</p>}
       </div>
