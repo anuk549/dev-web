@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
               "img-src 'self' data: blob: https:",
               "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
-              "connect-src 'self' https://vercel.live https://analytics.vercel.com https://wa.me",
+              "connect-src 'self' https://vercel.live https://analytics.vercel.com https://wa.me https://cdn.jsdelivr.net",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
