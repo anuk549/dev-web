@@ -12,6 +12,256 @@ const DEV_PHONE = normalizeWhatsAppNumber(
 const LOGO_SRC = "/logo.jpg";
 const STEPS = 9;
 
+// Sinhala translations for the application
+const translations = {
+  en: {
+    // Header
+    projectStudio: "Project Studio",
+    // Welcome Screen
+    welcomeTagline: "Student and business web projects",
+    welcomeTitle: "Plan your web project with confidence",
+    welcomeDesc: "Build a clear quote by choosing your stack, features, pages, database models, and delivery details. No guessing, no messy back-and-forth.",
+    startConfig: "Start configuration",
+    emailDev: "Email Dev+",
+    liveEstimate: "Live estimate",
+    deliveryWindow: "Delivery window",
+    support: "Support",
+    whatsappReady: "WhatsApp ready",
+    // Feedback section
+    feedbackTitle: "What students say",
+    feedbackDesc: "Sample project feedback shown to make the start page feel trustworthy before users begin the quote flow.",
+    // Steps
+    stepTitles: [
+      "Build a professional web project quote",
+      "Choose the frontend experience",
+      "Select the development language",
+      "Pick your backend architecture",
+      "Choose the database layer",
+      "Add the features your project needs",
+      "Model your pages and data",
+      "Connect your database tables",
+      "Share the request with Dev+",
+    ],
+    // Step labels
+    stepLabels: [
+      "Frontend",
+      "Language",
+      "Backend",
+      "Database",
+      "Features",
+      "Schema",
+      "Relations",
+      "Contact",
+    ],
+    // Common
+    next: "Next",
+    back: "Back",
+    compileQuote: "Compile Quote",
+    progress: "Progress",
+    buildingRequest: "Building request",
+    // Step 1 - Frontend
+    step1Title: "Choose the frontend experience",
+    // Step 2 - Language
+    step2Title: "Select the development language",
+    // Step 3 - Backend
+    step3Title: "Pick your backend architecture",
+    // Step 4 - Database
+    step4Title: "Choose the database layer",
+    // Step 5 - Features
+    step5Title: "Add the features your project needs",
+    loginRegister: "Login & register",
+    passwordEncryption: "Password encryption",
+    jwtTokens: "JWT tokens",
+    adminDashboard: "Admin dashboard",
+    emailAutomation: "Email automation",
+    fileUploads: "File uploads",
+    searchFeature: "Search feature",
+    // Step 6 - Schema
+    step6Title: "Model your pages and data",
+    tables: "Tables",
+    tableName: "Table name",
+    actions: "Actions",
+    attributes: "Attributes",
+    // Step 7 - Relations
+    step7Title: "Connect your database tables",
+    enableRelations: "Enable table relationships",
+    addRelationship: "Add relationship",
+    sourceModel: "Source model",
+    relation: "Relation",
+    targetModel: "Target model",
+    noRelations: "No relationships added yet.",
+    // Step 8 - Contact
+    step8Title: "Share the request with Dev+",
+    yourName: "Your name",
+    universityCourse: "University / course",
+    email: "Email",
+    whatsappNumber: "WhatsApp number",
+    topicDetails: "Topic details and deadlines",
+    topicPlaceholder: "Briefly describe the project topic, deadline, and special requirements.",
+    pricingSummary: "Pricing summary",
+    totalEstimate: "Total estimate",
+    workingDays: "working days",
+    sendWhatsApp: "Send on WhatsApp",
+    downloadPDF: "Download PDF Quote",
+    whatsappOpened: "Request opened in WhatsApp.",
+    // Summary
+    liveEstimateLabel: "Live estimate",
+    modules: "Modules",
+    tablesLabel: "Tables",
+    joins: "Joins",
+    frontend: "Frontend",
+    language: "Language",
+    backend: "Backend",
+    database: "Database",
+    notSelected: "Not selected",
+    noneSelected: "None selected",
+    // Validation
+    chooseFrontend: "Choose a frontend framework to continue.",
+    chooseLanguage: "Choose a programming language to continue.",
+    chooseBackend: "Choose a backend option to continue.",
+    chooseDatabase: "Choose a database engine to continue.",
+    enterName: "Please enter your name.",
+    enterEmail: "Please enter your email.",
+    validEmail: "Please enter a valid email address.",
+    // PDF
+    pdfTitle: "Dev+ Project Quote",
+    clientInfo: "Client Information",
+    techStack: "Technology Stack",
+    featuresModules: "Features & Modules",
+    databaseTables: "Database Tables",
+    databaseRelationships: "Database Relationships",
+    thankYou: "Thank you for choosing Dev+!",
+    // WhatsApp
+    whatsappNotConfigured: "WhatsApp number is not configured. Set NEXT_PUBLIC_DEV_WHATSAPP_NUMBER and redeploy.",
+    // Summary drawer
+    projectSummary: "Project summary",
+    daysLabel: "days",
+  },
+  si: {
+    // Header
+    projectStudio: "ව්‍යාපෘති කාර්යාලය",
+    // Welcome Screen
+    welcomeTagline: "සිසුන් සහ ව්‍යාපාර සඳහා වෙබ් ව්‍යාපෘති",
+    welcomeTitle: "විශ්වාසයෙන් යුතව ඔබේ වෙබ් ව්‍යාපෘතිය සැලසුම් කරන්න",
+    welcomeDesc: "ඔබේ තාක්ෂණික කොටස, විශේෂාංග, පිටු, දත්ත සමුදා ආකෘති සහ බෙදාහැරීමේ විස්තර තෝරාගනිමින් පැහැදිලි මිල ගණන් ගොඩනගාගන්න. අනුමාන කිරීම් නැත, අපැහැදිලි ලිපි හුවමාරුවක් නැත.",
+    startConfig: "සැකසුම ආරම්භ කරන්න",
+    emailDev: "Dev+ වෙත ඊමේල් කරන්න",
+    liveEstimate: "සජීවී මිල ඇස්තමේන්තුව",
+    deliveryWindow: "බෙදාහැරීමේ කාලය",
+    support: "සහාය",
+    whatsappReady: "WhatsApp සූදානම්",
+    // Feedback section
+    feedbackTitle: "සිසුන් පවසන්නේ කුමක්ද",
+    feedbackDesc: "උපුටා දැක්වීමේ ගලා යාම ආරම්භ කිරීමට පෙර ආරම්භක පිටුව විශ්වසනීය බවක් දැනෙන පරිදි පෙන්වන නිදසුන් ව්‍යාපෘති ප්‍රතිපෝෂණ.",
+    // Steps
+    stepTitles: [
+      "වෘත්තීය වෙබ් ව්‍යාපෘති මිල ගණන් ගොඩනගාගන්න",
+      "Frontend අත්දැකීම තෝරාගන්න",
+      "සංවර්ධන භාෂාව තෝරාගන්න",
+      "ඔබේ backend ගෘහනිර්මාණ ශිල්පය තෝරාගන්න",
+      "දත්ත සමුදා ස්ථරය තෝරාගන්න",
+      "ඔබේ ව්‍යාපෘතියට අවශ්‍ය විශේෂාංග එකතු කරන්න",
+      "ඔබේ පිටු සහ දත්ත ආකෘතිගත කරන්න",
+      "ඔබේ දත්ත සමුදා වගු සම්බන්ධ කරන්න",
+      "ඉල්ලීම Dev+ සමඟ බෙදාගන්න",
+    ],
+    // Step labels
+    stepLabels: [
+      "Frontend",
+      "භාෂාව",
+      "Backend",
+      "දත්ත සමුදාව",
+      "විශේෂාංග",
+      "ස්කීමාව",
+      "සම්බන්ධතා",
+      "සම්බන්ධතා",
+    ],
+    // Common
+    next: "ඊළඟ",
+    back: "ආපසු",
+    compileQuote: "මිල ගණන් සකසන්න",
+    progress: "ප්‍රගතිය",
+    buildingRequest: "ඉල්ලීම ගොඩනගමින්",
+    // Step 1 - Frontend
+    step1Title: "Frontend අත්දැකීම තෝරාගන්න",
+    // Step 2 - Language
+    step2Title: "සංවර්ධන භාෂාව තෝරාගන්න",
+    // Step 3 - Backend
+    step3Title: "ඔබේ backend ගෘහනිර්මාණ ශිල්පය තෝරාගන්න",
+    // Step 4 - Database
+    step4Title: "දත්ත සමුදා ස්ථරය තෝරාගන්න",
+    // Step 5 - Features
+    step5Title: "ඔබේ ව්‍යාපෘතියට අවශ්‍ය විශේෂාංග එකතු කරන්න",
+    loginRegister: "පිවිසුම සහ ලියාපදිංචිය",
+    passwordEncryption: "මුරපද සංකේතනය",
+    jwtTokens: "JWT ටෝකන",
+    adminDashboard: "පරිපාලක ඩෑෂ්බෝඩය",
+    emailAutomation: "ඊමේල් ස්වයංක්‍රීය කිරීම",
+    fileUploads: "ගොනු උඩුගත කිරීම්",
+    searchFeature: "සෙවුම් විශේෂාංගය",
+    // Step 6 - Schema
+    step6Title: "ඔබේ පිටු සහ දත්ත ආකෘතිගත කරන්න",
+    tables: "වගු",
+    tableName: "වගුවේ නම",
+    actions: "ක්‍රියා",
+    attributes: "ගුණාංග",
+    // Step 7 - Relations
+    step7Title: "ඔබේ දත්ත සමුදා වගු සම්බන්ධ කරන්න",
+    enableRelations: "වගු සම්බන්ධතා සක්‍රිය කරන්න",
+    addRelationship: "සම්බන්ධතාවය එකතු කරන්න",
+    sourceModel: "මූලාශ්‍ර ආකෘතිය",
+    relation: "සම්බන්ධතාවය",
+    targetModel: "ඉලක්ක ආකෘතිය",
+    noRelations: "තවම සම්බන්ධතා එකතු කර නැත.",
+    // Step 8 - Contact
+    step8Title: "ඉල්ලීම Dev+ සමඟ බෙදාගන්න",
+    yourName: "ඔබේ නම",
+    universityCourse: "විශ්වවිද්‍යාලය / පාඨමාලාව",
+    email: "ඊමේල්",
+    whatsappNumber: "WhatsApp අංකය",
+    topicDetails: "මාතෘකා විස්තර සහ කාලසීමා",
+    topicPlaceholder: "ව්‍යාපෘති මාතෘකාව, කාලසීමාව සහ විශේෂ අවශ්‍යතා කෙටියෙන් විස්තර කරන්න.",
+    pricingSummary: "මිල ගණන් සාරාංශය",
+    totalEstimate: "මුළු ඇස්තමේන්තුව",
+    workingDays: "වැඩ කරන දින",
+    sendWhatsApp: "WhatsApp හි යවන්න",
+    downloadPDF: "PDF මිල ගණන් බාගන්න",
+    whatsappOpened: "ඉල්ලීම WhatsApp හි විවෘත විය.",
+    // Summary
+    liveEstimateLabel: "සජීවී ඇස්තමේන්තුව",
+    modules: "මොඩියුල",
+    tablesLabel: "වගු",
+    joins: "සම්බන්ධතා",
+    frontend: "Frontend",
+    language: "භාෂාව",
+    backend: "Backend",
+    database: "දත්ත සමුදාව",
+    notSelected: "තෝරා නැත",
+    noneSelected: "කිසිවක් තෝරා නැත",
+    // Validation
+    chooseFrontend: "ඉදිරියට යාමට frontend රාමුවක් තෝරාගන්න.",
+    chooseLanguage: "ඉදිරියට යාමට ක්‍රමලේඛන භාෂාවක් තෝරාගන්න.",
+    chooseBackend: "ඉදිරියට යාමට backend විකල්පයක් තෝරාගන්න.",
+    chooseDatabase: "ඉදිරියට යාමට දත්ත සමුදා එන්ජිමක් තෝරාගන්න.",
+    enterName: "කරුණාකර ඔබේ නම ඇතුළත් කරන්න.",
+    enterEmail: "කරුණාකර ඔබේ ඊමේල් ලිපිනය ඇතුළත් කරන්න.",
+    validEmail: "කරුණාකර වලංගු ඊමේල් ලිපිනයක් ඇතුළත් කරන්න.",
+    // PDF
+    pdfTitle: "Dev+ ව්‍යාපෘති මිල ගණන්",
+    clientInfo: "පාරිභෝගික තොරතුරු",
+    techStack: "තාක්ෂණික කොටස",
+    featuresModules: "විශේෂාංග සහ මොඩියුල",
+    databaseTables: "දත්ත සමුදා වගු",
+    databaseRelationships: "දත්ත සමුදා සම්බන්ධතා",
+    thankYou: "Dev+ තෝරාගැනීම ස්තූතියි!",
+    // WhatsApp
+    whatsappNotConfigured: "WhatsApp අංකය සැකසී නැත. NEXT_PUBLIC_DEV_WHATSAPP_NUMBER සකසා නැවත ස්ථාපනය කරන්න.",
+    // Summary drawer
+    projectSummary: "ව්‍යාපෘති සාරාංශය",
+    daysLabel: "දින",
+  },
+};
+
 type CrudKey = "create" | "read" | "update" | "delete" | "search";
 
 interface FieldSpec {
@@ -104,11 +354,15 @@ const feedbackItems = [
 export default function Home() {
   const [currentStep, setCurrentStep] = useState(0);
   const [maxStepReached, setMaxStepReached] = useState(0);
+  const [appLanguage, setAppLanguage] = useState<'en' | 'si'>('en');
 
   const [frontend, setFrontend] = useState<string | null>(null);
-  const [language, setLanguage] = useState<string | null>(null);
+  const [devLanguage, setDevLanguage] = useState<string | null>(null);
   const [backend, setBackend] = useState<string | null>(null);
   const [database, setDatabase] = useState<string | null>(null);
+
+  // Get current translations
+  const t = translations[appLanguage];
 
   const [login, setLogin] = useState(true);
   const [encrypt, setEncrypt] = useState(true);
@@ -209,14 +463,14 @@ export default function Home() {
     { label: "Search", active: search, color: "violet" },
   ].filter((item) => item.active);
 
-  const selectedStack = [frontend, language, backend, database].filter(Boolean).join(" / ");
+  const selectedStack = [frontend, devLanguage, backend, database].filter(Boolean).join(" / ");
   const progressPercent = Math.round((Math.max(currentStep, 1) / (STEPS - 1)) * 100);
 
   const validateStep = (step: number) => {
-    if (step === 1 && !frontend) return "Choose a frontend framework to continue.";
-    if (step === 2 && !language) return "Choose a programming language to continue.";
-    if (step === 3 && !backend) return "Choose a backend option to continue.";
-    if (step === 4 && !database) return "Choose a database engine to continue.";
+    if (step === 1 && !frontend) return t.chooseFrontend;
+    if (step === 2 && !devLanguage) return t.chooseLanguage;
+    if (step === 3 && !backend) return t.chooseBackend;
+    if (step === 4 && !database) return t.chooseDatabase;
     if (step === 8) {
       if (!clientName.trim()) return "Please enter your name.";
       if (!clientEmail.trim()) return "Please enter your email.";
@@ -352,11 +606,11 @@ export default function Home() {
       `Uni/Course: ${clientUni || "N/A"}\n` +
       `Email: ${clientEmail}\n` +
       `WhatsApp: ${clientWa || "N/A"}\n\n` +
-      `Tech Stack:\n- Frontend: ${frontend}\n- Language: ${language}\n- Backend: ${backend}\n- Database: ${database}\n\n` +
+      `Tech Stack:\n- Frontend: ${frontend}\n- Language: ${devLanguage}\n- Backend: ${backend}\n- Database: ${database}\n\n` +
       `Auth: ${authList}\nFeatures: ${extrasList}\n\n` +
       `Dynamic Pages & Schemas:\n- ${pagesText}\n\n` +
       (fk && fkDesc ? `Relationships: ${fkDesc}\n\n` : "") +
-      `Total Cost: ${quote.total.toLocaleString()} LKR\n` +
+      `Pricing: Custom quote (will be confirmed)\n` +
       `Estimated Delivery: ${quote.days}-${quote.days + 2} days\n\n` +
       `Details/Topic: ${clientDesc || "None specified"}\n\nPlease confirm and let's get started.`
     );
@@ -373,7 +627,7 @@ export default function Home() {
   };
 
   const showMissingWhatsAppNumber = () => {
-    window.alert("WhatsApp number is not configured. Set NEXT_PUBLIC_DEV_WHATSAPP_NUMBER and redeploy.");
+    window.alert(t.whatsappNotConfigured);
   };
 
   const triggerQuoteGeneration = () => {
@@ -383,7 +637,7 @@ export default function Home() {
     setCompilationProgress(0);
 
     const logs = [
-      `Preparing ${frontend} project shell with ${language}...`,
+      `Preparing ${frontend} project shell with ${devLanguage}...`,
       `Mapping ${backend} services to ${database} storage...`,
       `Packing selected modules: ${modules.map((m) => m.label).join(", ") || "Core only"}...`,
       `Compiling schema models: ${pages.map((p) => p.topic).join(", ")}...`,
@@ -417,12 +671,19 @@ export default function Home() {
       });
 
       const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 15;
       const contentWidth = pageWidth - margin * 2;
-      let y = 15;
+      let y = 20;
+
+      // Colors
+      const primary: [number, number, number] = [15, 23, 42];
+      const accent: [number, number, number] = [45, 212, 191];
+      const lightGray: [number, number, number] = [241, 245, 249];
+      const white: [number, number, number] = [255, 255, 255];
 
       // Helper function to add text
-      const addText = (text: string, x: number, yPos: number, size: number, bold: boolean = false, color: [number, number, number] = [0, 0, 0]) => {
+      const addText = (text: string, x: number, yPos: number, size: number, bold: boolean = false, color: [number, number, number] = [0, 0, 0] as [number, number, number]) => {
         pdf.setFontSize(size);
         if (bold) pdf.setFont("helvetica", "bold");
         else pdf.setFont("helvetica", "normal");
@@ -431,126 +692,177 @@ export default function Home() {
       };
 
       // Helper to add a filled rectangle
-      const addBox = (x: number, y: number, w: number, h: number, color: [number, number, number]) => {
+      const addBox = (x: number, yPos: number, w: number, h: number, color: [number, number, number], radius?: number) => {
         pdf.setFillColor(color[0], color[1], color[2]);
-        pdf.rect(x, y, w, h, "F");
+        if (radius) {
+          pdf.roundedRect(x, yPos, w, h, radius, radius, "F");
+        } else {
+          pdf.rect(x, yPos, w, h, "F");
+        }
       };
 
-      // Header
-      addBox(margin, y - 5, contentWidth, 25, [15, 23, 42]);
-      addText("Dev+ Project Quote", margin + 5, y + 8, 18, true, [255, 255, 255]);
-      addText(`Date: ${new Date().toLocaleDateString()}`, margin + 5, y + 16, 8, false, [200, 200, 200]);
-      y += 28;
+      // Helper for RGB color arrays
+      const rgb = (r: number, g: number, b: number): [number, number, number] => [r, g, b];
 
-      // Client info (if available)
+      // Add accent line at top
+      addBox(margin, 10, contentWidth, 4, accent);
+
+      // Header Section
+      addBox(margin, y, contentWidth, 30, primary, 3);
+      addText("Dev+", margin + 8, y + 12, 22, true, white);
+      addText("Project Specification", margin + 8, y + 20, 10, false, rgb(200, 200, 200));
+      addText(`Generated: ${new Date().toLocaleDateString()}`, margin + 8, y + 27, 8, false, rgb(180, 180, 180));
+      y += 38;
+
+      // Client Information Section
       if (clientName || clientEmail) {
-        addText("Client Information", margin, y, 12, true);
-        y += 8;
+        addText("Client Information", margin, y, 13, true, primary);
+        y += 2;
+        addBox(margin, y, contentWidth, 0.3, accent);
+        y += 5;
+
         if (clientName) {
-          addText(`Name: ${clientName}`, margin + 5, y, 10);
+          addText("Name:", margin + 5, y, 10, true);
+          addText(clientName, margin + 25, y, 10, false);
           y += 6;
         }
         if (clientEmail) {
-          addText(`Email: ${clientEmail}`, margin + 5, y, 10);
+          addText("Email:", margin + 5, y, 10, true);
+          addText(clientEmail, margin + 25, y, 10, false);
           y += 6;
         }
         if (clientUni) {
-          addText(`University/Course: ${clientUni}`, margin + 5, y, 10);
+          addText("University/Course:", margin + 5, y, 10, true);
+          addText(clientUni, margin + 35, y, 10, false);
           y += 6;
         }
-        y += 4;
+        if (clientWa) {
+          addText("WhatsApp:", margin + 5, y, 10, true);
+          addText(clientWa, margin + 28, y, 10, false);
+          y += 6;
+        }
+        y += 3;
       }
 
-      // Tech Stack
-      addText("Technology Stack", margin, y, 12, true);
-      y += 8;
+      // Technology Stack Section
+      addText("Technology Stack", margin, y, 13, true, primary);
+      y += 2;
+      addBox(margin, y, contentWidth, 0.3, accent);
+      y += 6;
+
       const stackItems = [
         ["Frontend", frontend || "Not selected"],
-        ["Language", language || "Not selected"],
+        ["Language", devLanguage || "Not selected"],
         ["Backend", backend || "Not selected"],
         ["Database", database || "Not selected"],
       ];
-      stackItems.forEach(([label, value]) => {
-        addText(`${label}:`, margin + 5, y, 10, true);
-        addText(value, margin + 40, y, 10, false);
-        y += 6;
-      });
-      y += 4;
 
-      // Modules/Features
+      stackItems.forEach(([label, value]) => {
+        // Label box
+        addBox(margin + 5, y - 3, 25, 6, lightGray, 1);
+        addText(label, margin + 7, y + 1, 9, true, primary);
+        addText(value, margin + 35, y + 1, 9, false, rgb(0, 0, 0));
+        y += 8;
+      });
+      y += 3;
+
+      // Features & Modules Section
       const activeModules = modules.filter(m => m.active);
       if (activeModules.length > 0) {
-        addText("Features & Modules", margin, y, 12, true);
-        y += 8;
-        activeModules.forEach(mod => {
-          addText(`• ${mod.label}`, margin + 5, y, 10);
-          y += 6;
+        addText("Features & Modules", margin, y, 13, true, primary);
+        y += 2;
+        addBox(margin, y, contentWidth, 0.3, accent);
+        y += 6;
+
+        // Display modules in a grid-like format
+        let moduleX = margin + 5;
+        activeModules.forEach((mod, idx) => {
+          const moduleWidth = 40;
+          if (moduleX + moduleWidth > pageWidth - margin) {
+            moduleX = margin + 5;
+            y += 8;
+          }
+          addBox(moduleX, y - 2, moduleWidth, 6, lightGray, 1);
+          addText(`✓ ${mod.label}`, moduleX + 2, y + 2, 8, true, primary);
+          moduleX += moduleWidth + 3;
         });
-        y += 4;
+        y += 12;
       }
 
-      // Pages/Tables
-      addText("Database Tables", margin, y, 12, true);
-      y += 8;
+      // Database Tables Section
+      addText("Database Tables", margin, y, 13, true, primary);
+      y += 2;
+      addBox(margin, y, contentWidth, 0.3, accent);
+      y += 6;
+
       pages.forEach((page, idx) => {
+        if (y > pageHeight - 60) {
+          pdf.addPage();
+          y = 20;
+        }
+
         const crudKeys: CrudKey[] = ["create", "read", "update", "delete", "search"];
         const ops = crudKeys
           .filter(key => page[key])
           .map(key => key.toUpperCase())
           .join("/");
-        addText(`${idx + 1}. ${page.topic || `Table ${idx + 1}`} [${ops || "None"}]`, margin + 5, y, 10);
-        y += 6;
+
+        // Table header
+        addBox(margin + 5, y - 3, contentWidth - 10, 7, lightGray, 1);
+        addText(`${idx + 1}. ${page.topic || `Table ${idx + 1}`}`, margin + 8, y + 2, 10, true, primary);
+        addText(`[${ops || "None"}]`, margin + contentWidth - 35, y + 2, 8, false, accent);
+        y += 7;
+
+        // Table fields
         page.fields.forEach(field => {
-          addText(`   - ${field.label || "unnamed"}: ${field.type}`, margin + 10, y, 9);
+          addText(`  └─ ${field.label || "unnamed"}`, margin + 10, y, 9, true, rgb(100, 116, 139));
+          addText(`: ${field.type}`, margin + 60, y, 9, false, rgb(100, 116, 139));
           y += 5;
         });
-        y += 2;
+        y += 3;
       });
-      y += 4;
+      y += 3;
 
-      // Relationships
+      // Relationships Section
       if (fk && relations.length > 0) {
-        addText("Database Relationships", margin, y, 12, true);
-        y += 8;
+        addText("Database Relationships", margin, y, 13, true, primary);
+        y += 2;
+        addBox(margin, y, contentWidth, 0.3, accent);
+        y += 6;
+
         relations.forEach(rel => {
-          addText(`• ${rel.sourceTable} ${rel.relationType} ${rel.targetTable}`, margin + 5, y, 10);
-          y += 6;
+          addText(`→ ${rel.sourceTable}`, margin + 8, y, 10, true, primary);
+          addText(`${rel.relationType}`, margin + 45, y, 10, false, accent);
+          addText(`${rel.targetTable}`, margin + 95, y, 10, true, primary);
+          y += 7;
         });
-        y += 4;
+        y += 3;
       }
 
-      // Pricing
+      // Delivery Timeline - Highlighted Section
       y += 5;
-      addBox(margin, y, contentWidth, 30, [241, 245, 249]);
-      addText("Pricing Summary", margin + 5, y + 8, 12, true);
-      y += 14;
-      quote.breakdown.forEach(item => {
-        addText(item.label, margin + 5, y, 10);
-        addText(`${item.val.toLocaleString()} LKR`, pageWidth - margin - 30, y, 10, true);
-        y += 6;
-      });
-      y += 4;
+      if (y > pageHeight - 40) {
+        pdf.addPage();
+        y = 20;
+      }
 
-      // Total
-      addBox(margin, y, contentWidth, 12, [15, 23, 42]);
-      addText("Total Estimate", margin + 5, y + 8, 12, true, [255, 255, 255]);
-      addText(`${quote.total.toLocaleString()} LKR`, pageWidth - margin - 30, y + 8, 14, true, [255, 255, 255]);
-      y += 16;
-
-      // Delivery
-      addText(`Estimated Delivery: ${quote.days}-${quote.days + 2} working days`, margin, y, 10, false, [45, 212, 191]);
+      addBox(margin, y, contentWidth, 20, primary, 3);
+      addText("Estimated Delivery", margin + 8, y + 8, 12, true, white);
+      addText(`${quote.days}-${quote.days + 2} working days`, margin + 8, y + 16, 14, true, accent);
+      y += 25;
 
       // Footer
-      const footerY = 280;
-      addBox(margin, footerY, contentWidth, 10, [241, 245, 249]);
-      addText("Thank you for choosing Dev+!", margin + 5, footerY + 7, 9, false, [100, 116, 139]);
+      const footerY = pageHeight - 25;
+      addBox(margin, footerY, contentWidth, 15, lightGray, 2);
+      addText("Thank you for choosing Dev+!", margin + 8, footerY + 7, 10, true, primary);
+      addText("Contact: anuk200101@gmail.com | WhatsApp: +94 70 379 9364", margin + 8, footerY + 13, 8, false, rgb(100, 116, 139));
 
-      pdf.save(`DevPlus-Quote-${clientName.replace(/\s+/g, "-") || "Project"}.pdf`);
+      pdf.save(`DevPlus-Spec-${clientName.replace(/\s+/g, "-") || "Project"}.pdf`);
     } catch (error) {
       console.error("Failed to generate PDF:", error);
       window.alert("Failed to generate PDF. Please try again.");
     }
-  }, [clientName, frontend, language, backend, database, modules, pages, fk, relations, quote]);
+  }, [clientName, clientEmail, clientUni, clientWa, frontend, devLanguage, backend, database, modules, pages, fk, relations, quote]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-app-shell text-slate-950 selection:bg-teal-200/70">
@@ -597,6 +909,14 @@ export default function Home() {
             </span>
           </button>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setAppLanguage(appLanguage === 'en' ? 'si' : 'en')}
+              className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm hover:border-teal-300 hover:bg-teal-50"
+              title={appLanguage === 'en' ? 'Switch to Sinhala' : 'Switch to English'}
+            >
+              {appLanguage === 'en' ? 'සිංහල' : 'EN'}
+            </button>
             <a href={DEV_PHONE ? `https://wa.me/${DEV_PHONE}` : "#"} onClick={(event) => {
               if (!DEV_PHONE) {
                 event.preventDefault();
@@ -607,7 +927,7 @@ export default function Home() {
             </a>
             {currentStep > 0 ? (
               <button type="button" onClick={() => setSummaryDrawerOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm lg:hidden">
-                <i className="ti ti-receipt" /> {quote.total.toLocaleString()} LKR
+                <i className="ti ti-receipt" /> Summary
               </button>
             ) : (
               <button type="button" onClick={() => goToStep(1)} className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm lg:hidden">
@@ -618,9 +938,9 @@ export default function Home() {
         </div>
       </header>
 
-      <main className={`mx-auto max-w-7xl gap-5 px-4 py-5 sm:px-6 lg:py-7 ${currentStep === 0 ? "block" : "grid lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[250px_minmax(0,1fr)_300px]"}`}>
+      <main className={`mx-auto max-w-7xl gap-6 px-4 py-5 sm:px-6 lg:py-7 ${currentStep === 0 ? "block" : "grid lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)_280px]"}`}>
         {currentStep > 0 && (
-        <aside className="hidden lg:block">
+        <aside className="hidden lg:block lg:flex-1">
           <div className="surface-panel sticky top-24 p-4">
             <div className="mb-4">
               <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Progress</p>
@@ -671,7 +991,7 @@ export default function Home() {
                   </span>
                   <span className="text-sm font-bold text-slate-500">{selectedStack || "Configure your stack"}</span>
                 </div>
-                <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">{getStepTitle(currentStep)}</h1>
+                <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">{getStepTitle(currentStep, t)}</h1>
               </div>
 
               <div className="min-h-[560px] p-4 sm:p-6 lg:p-7">
@@ -704,8 +1024,8 @@ export default function Home() {
                       { name: "TypeScript", sub: "Typed, maintainable, production-friendly", icon: "ti-brand-typescript" },
                       { name: "JavaScript", sub: "Simple, quick, and familiar", icon: "ti-brand-javascript" },
                     ]}
-                    value={language}
-                    onSelect={setLanguage}
+                    value={devLanguage}
+                    onSelect={setDevLanguage}
                     clearError={() => setValidationError(null)}
                   />
                 )}
@@ -742,13 +1062,13 @@ export default function Home() {
                 {currentStep === 5 && (
                   <div className="grid gap-3 sm:grid-cols-2">
                     {[
-                      { label: "Login & register", desc: "+500 LKR", active: login, set: setLogin, icon: "ti-user-check" },
-                      { label: "Password encryption", desc: "+200 LKR", active: encrypt, set: setEncrypt, icon: "ti-shield-lock" },
-                      { label: "JWT tokens", desc: "+300 LKR", active: jwt, set: setJwt, icon: "ti-key" },
-                      { label: "Admin dashboard", desc: "+1,000 LKR", active: admin, set: setAdmin, icon: "ti-dashboard" },
-                      { label: "Email automation", desc: "+500 LKR", active: email, set: setEmail, icon: "ti-mail" },
-                      { label: "File uploads", desc: "+500 LKR", active: upload, set: setUpload, icon: "ti-cloud-upload" },
-                      { label: "Search feature", desc: "+500 LKR", active: search, set: setSearch, icon: "ti-search" },
+                      { label: "Login & register", desc: "Secure user authentication", active: login, set: setLogin, icon: "ti-user-check" },
+                      { label: "Password encryption", desc: "Bcrypt hashing security", active: encrypt, set: setEncrypt, icon: "ti-shield-lock" },
+                      { label: "JWT tokens", desc: "Token-based authentication", active: jwt, set: setJwt, icon: "ti-key" },
+                      { label: "Admin dashboard", desc: "Management control panel", active: admin, set: setAdmin, icon: "ti-dashboard" },
+                      { label: "Email automation", desc: "Automated email system", active: email, set: setEmail, icon: "ti-mail" },
+                      { label: "File uploads", desc: "Secure file handling", active: upload, set: setUpload, icon: "ti-cloud-upload" },
+                      { label: "Search feature", desc: "Application-wide search", active: search, set: setSearch, icon: "ti-search" },
                     ].map((item) => (
                       <ToggleCard key={item.label} {...item} />
                     ))}
@@ -756,19 +1076,21 @@ export default function Home() {
                 )}
 
                 {currentStep === 6 && activePage && (
-                  <SchemaEditor
-                    pages={pages}
-                    activePageIdx={clampedActivePageIdx}
-                    activePage={activePage}
-                    setActivePageIdx={setActivePageIdx}
-                    handleAddPage={handleAddPage}
-                    handleRemovePage={handleRemovePage}
-                    updatePage={updatePage}
-                    handleCrudToggle={handleCrudToggle}
-                    handleAddField={handleAddField}
-                    handleRemoveField={handleRemoveField}
-                    updateField={updateField}
-                  />
+                  <div className="max-w-5xl mx-auto">
+                    <SchemaEditor
+                      pages={pages}
+                      activePageIdx={clampedActivePageIdx}
+                      activePage={activePage}
+                      setActivePageIdx={setActivePageIdx}
+                      handleAddPage={handleAddPage}
+                      handleRemovePage={handleRemovePage}
+                      updatePage={updatePage}
+                      handleCrudToggle={handleCrudToggle}
+                      handleAddField={handleAddField}
+                      handleRemoveField={handleRemoveField}
+                      updateField={updateField}
+                    />
+                  </div>
                 )}
 
                 {currentStep === 7 && (
@@ -834,7 +1156,7 @@ export default function Home() {
         <aside className="hidden xl:block">
           <SummaryPanel
             frontend={frontend}
-            language={language}
+            devLanguage={devLanguage}
             backend={backend}
             database={database}
             modules={modules}
@@ -859,7 +1181,7 @@ export default function Home() {
             </div>
             <SummaryPanel
               frontend={frontend}
-              language={language}
+              devLanguage={devLanguage}
               backend={backend}
               database={database}
               modules={modules}
@@ -877,18 +1199,8 @@ export default function Home() {
   );
 }
 
-function getStepTitle(step: number) {
-  return [
-    "Build a professional web project quote",
-    "Choose the frontend experience",
-    "Select the development language",
-    "Pick your backend architecture",
-    "Choose the database layer",
-    "Add the features your project needs",
-    "Model your pages and data",
-    "Connect your database tables",
-    "Share the request with Dev+",
-  ][step];
+function getStepTitle(step: number, t: typeof translations.en) {
+  return t.stepTitles[step] || "";
 }
 
 function normalizeWhatsAppNumber(phone: string) {
@@ -923,7 +1235,7 @@ function WelcomeScreen({ quoteTotal, days, onStart }: { quoteTotal: number; days
 
           <div className="mt-10 grid gap-3 sm:grid-cols-3">
             {[
-              ["Live estimate", `${quoteTotal.toLocaleString()} LKR`],
+              ["Live estimate", "Custom quote"],
               ["Delivery window", `${days}-${days + 2} days`],
               ["Support", "WhatsApp ready"],
             ].map(([label, value]) => (
@@ -1113,8 +1425,8 @@ function SchemaEditor(props: {
             <span className="form-label">Actions</span>
             <div className="mt-2 flex flex-wrap gap-2">
               {(["create", "read", "update", "delete", "search"] as CrudKey[]).map((key) => (
-                <button key={key} type="button" onClick={() => props.handleCrudToggle(activePageIdx, key)} className={`rounded-full border px-3 py-2 text-xs font-black uppercase ${activePage[key] ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-500"}`}>
-                  {key}
+                <button key={key} type="button" onClick={() => props.handleCrudToggle(activePageIdx, key)} className={`rounded-lg border px-3 py-2 text-xs font-black uppercase tracking-wide ${activePage[key] ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-500"}`}>
+                  {key === 'create' ? 'C' : key === 'read' ? 'R' : key === 'update' ? 'U' : key === 'delete' ? 'D' : 'S'}
                 </button>
               ))}
             </div>
@@ -1171,7 +1483,7 @@ function RelationsEditor(props: {
 
   return (
     <div className="space-y-4">
-      <ToggleCard label="Enable table relationships" desc="+500 LKR" active={props.fk} set={props.setFk} icon="ti-git-fork" />
+      <ToggleCard label="Enable table relationships" desc="Foreign key constraints" active={props.fk} set={props.setFk} icon="ti-git-fork" />
       {props.fk && (
         <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4">
           <div className="grid gap-3 sm:grid-cols-3">
@@ -1271,18 +1583,18 @@ function ContactStep(props: {
         </label>
       </div>
       <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 lg:sticky lg:top-24">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Pricing summary</p>
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Project summary</p>
         <div className="mt-4 space-y-2">
           {props.breakdown.map((item) => (
             <div key={item.label} className="flex justify-between gap-3 border-b border-slate-200 pb-2 text-sm">
               <span className="font-bold text-slate-600">{item.label}</span>
-              <span className="font-black text-slate-950">{item.val.toLocaleString()}</span>
+              <span className="font-black text-slate-950">Included</span>
             </div>
           ))}
         </div>
         <div className="mt-5 rounded-3xl bg-slate-950 p-5 text-white">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-white/45">Total estimate</p>
-          <p className="mt-2 text-3xl font-black">{props.total.toLocaleString()} LKR</p>
+          <p className="mt-2 text-3xl font-black">Custom Quote</p>
           <p className="mt-1 text-sm font-bold text-teal-200">{props.days}-{props.days + 2} working days</p>
         </div>
         <button type="button" onClick={props.onWhatsApp} className="mt-4 w-full justify-center rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500">
@@ -1308,7 +1620,7 @@ function TextInput({ label, value, onChange, placeholder, required = false, type
 
 function SummaryPanel(props: {
   frontend: string | null;
-  language: string | null;
+  devLanguage: string | null;
   backend: string | null;
   database: string | null;
   modules: { label: string; active: boolean; color: string }[];
@@ -1321,15 +1633,15 @@ function SummaryPanel(props: {
 }) {
   return (
     <div className={`${props.compact ? "" : "surface-panel sticky top-24"} p-4`}>
-      <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Live estimate</p>
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Project summary</p>
       <div className="mt-3 rounded-3xl bg-slate-950 p-5 text-white">
-        <p className="text-3xl font-black">{props.total.toLocaleString()} LKR</p>
+        <p className="text-xl font-black">Custom Quote</p>
         <p className="mt-1 text-sm font-bold text-teal-200">{props.days}-{props.days + 2} working days</p>
       </div>
       <div className="mt-4 grid gap-3">
         {[
           ["Frontend", props.frontend || "Not selected"],
-          ["Language", props.language || "Not selected"],
+          ["Language", props.devLanguage || "Not selected"],
           ["Backend", props.backend || "Not selected"],
           ["Database", props.database || "Not selected"],
         ].map(([label, value]) => (
