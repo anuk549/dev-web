@@ -5,10 +5,13 @@ const options = {
   maxPoolSize: 10,
 };
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+let clientPromise: Promise<MongoClient> | undefined;
 
-if (uri) {
+function getMongoClientPromise(): Promise<MongoClient> {
+  if (!uri) {
+    throw new Error('MONGODB_URI is not configured. Please add it to your environment variables.');
+  }
+
   if (process.env.NODE_ENV === 'development') {
     // In development mode, use a global variable so that the value
     // is preserved across module reloads.
@@ -17,31 +20,24 @@ if (uri) {
     };
 
     if (!globalWithMongo._mongoClientPromise) {
-      client = new MongoClient(uri, options);
+      const client = new MongoClient(uri, options);
       globalWithMongo._mongoClientPromise = client.connect();
     }
-    clientPromise = globalWithMongo._mongoClientPromise;
-  } else {
-    // In production mode, it's best to not use a global variable.
-    client = new MongoClient(uri, options);
+
+    return globalWithMongo._mongoClientPromise;
+  }
+
+  if (!clientPromise) {
+    const client = new MongoClient(uri, options);
     clientPromise = client.connect();
   }
-} else {
-  // Create a dummy promise that never resolves if no URI is provided
-  // This prevents errors during build time when MongoDB is not needed
-  clientPromise = new Promise(() => {});
-}
 
-// Export a module-scoped MongoClient promise. By doing this in a
-// separate module, the client can be shared across functions.
-export default clientPromise;
+  return clientPromise;
+}
 
 // Helper function to get the database instance
 export async function getDatabase(dbName?: string): Promise<Db> {
-  if (!uri) {
-    throw new Error('MONGODB_URI is not configured. Please add it to your environment variables.');
-  }
-  const client = await clientPromise;
+  const client = await getMongoClientPromise();
   // Use provided dbName, or env variable, or extract from connection string
   const databaseName = dbName || process.env.MONGODB_DB_NAME || 'cluster0';
   return client.db(databaseName);
