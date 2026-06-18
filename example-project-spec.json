@@ -1,0 +1,174 @@
+{
+  "metadata": {
+    "generatedAt": "2026-06-18T12:30:00.000Z",
+    "version": "1.0.0",
+    "generator": "Dev+ Quote Builder"
+  },
+  "client": {
+    "name": "Kasun Perera",
+    "email": "kasun@example.com",
+    "whatsapp": "+94771234567",
+    "university": "SLIIT - Software Engineering",
+    "description": "Student management system with admin dashboard"
+  },
+  "stack": {
+    "frontend": {
+      "framework": "React",
+      "language": "TypeScript"
+    },
+    "backend": {
+      "framework": "Next.js API",
+      "runtime": "Node.js"
+    },
+    "database": {
+      "engine": "PostgreSQL"
+    }
+  },
+  "features": {
+    "authentication": {
+      "enabled": true,
+      "methods": ["email-password"]
+    },
+    "security": {
+      "passwordEncryption": true,
+      "jwtTokens": false
+    },
+    "adminPanel": {
+      "enabled": true
+    },
+    "communication": {
+      "emailAutomation": false
+    },
+    "fileManagement": {
+      "fileUploads": true
+    },
+    "search": {
+      "globalSearch": true
+    }
+  },
+  "database": {
+    "tables": [
+      {
+        "name": "Students",
+        "fields": [
+          {
+            "name": "id",
+            "type": "integer",
+            "constraints": {
+              "primaryKey": true,
+              "nullable": false,
+              "unique": true
+            }
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "constraints": {
+              "nullable": true
+            }
+          },
+          {
+            "name": "email",
+            "type": "string",
+            "constraints": {
+              "nullable": true
+            }
+          }
+        ],
+        "crud": {
+          "create": true,
+          "read": true,
+          "update": true,
+          "delete": true,
+          "search": false
+        }
+      }
+    ],
+    "relationships": []
+  },
+  "apiEndpoints": [
+    {
+      "path": "/api/students",
+      "methods": ["POST"],
+      "description": "Create new Students record"
+    },
+    {
+      "path": "/api/students",
+      "methods": ["GET"],
+      "description": "Get all Students records"
+    },
+    {
+      "path": "/api/students/:id",
+      "methods": ["GET"],
+      "description": "Get Students by ID"
+    },
+    {
+      "path": "/api/students/:id",
+      "methods": ["PUT", "PATCH"],
+      "description": "Update Students by ID"
+    },
+    {
+      "path": "/api/students/:id",
+      "methods": ["DELETE"],
+      "description": "Delete Students by ID"
+    }
+  ],
+  "timeline": {
+    "estimatedDays": 3,
+    "phases": [
+      {
+        "name": "Development",
+        "duration": 2,
+        "tasks": [
+          "Set up project structure",
+          "Implement authentication system",
+          "Create database models",
+          "Build API endpoints",
+          "Develop frontend components",
+          "Implement CRUD operations"
+        ]
+      },
+      {
+        "name": "Testing & QA",
+        "duration": 1,
+        "tasks": [
+          "Unit testing",
+          "Integration testing",
+          "User acceptance testing",
+          "Bug fixes"
+        ]
+      },
+      {
+        "name": "Deployment",
+        "duration": 0,
+        "tasks": [
+          "Set up production environment",
+          "Deploy application",
+          "Configure database",
+          "Final testing"
+        ]
+      }
+    ]
+  },
+  "pricing": {
+    "breakdown": [
+      {
+        "label": "Frontend Development",
+        "value": 25000
+      },
+      {
+        "label": "Backend Development",
+        "value": 20000
+      },
+      {
+        "label": "Database Design",
+        "value": 10000
+      },
+      {
+        "label": "Features & Modules",
+        "value": 15000
+      }
+    ],
+    "total": 70000
+  }
+}

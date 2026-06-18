@@ -63,11 +63,15 @@ const nextConfig: NextConfig = {
             key: "X-DNS-Prefetch-Control",
             value: "on",
           },
-          // Cache Control for static assets
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
+          // Cache Control for static assets (only in production)
+          ...(process.env.NODE_ENV === "production"
+            ? [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=31536000, immutable",
+                },
+              ]
+            : []),
         ],
       },
     ];
