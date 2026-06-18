@@ -126,27 +126,6 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
     setMaxStepReached((prev) => Math.max(prev, step));
   }, []);
 
-  const handleNext = useCallback(() => {
-    setValidationError(null);
-    const error = validateStep(currentStep);
-    if (error) {
-      setValidationError(error);
-      return;
-    }
-    if (currentStep < 9) {
-      goToStep(currentStep + 1);
-      return;
-    }
-    triggerQuoteGeneration();
-  }, [currentStep, goToStep]);
-
-  const handleBack = useCallback(() => {
-    setValidationError(null);
-    if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
-    }
-  }, [currentStep]);
-
   // Validation
   const validateStep = useCallback(
     (step: number): string | null => {
@@ -327,6 +306,10 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
     quote.days,
   ]);
 
+  const showMissingWhatsAppNumber = useCallback(() => {
+    window.alert(translations.whatsappNotConfigured as string);
+  }, [translations]);
+
   const openWhatsApp = useCallback(() => {
     if (!DEV_PHONE) {
       showMissingWhatsAppNumber();
@@ -334,11 +317,7 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
     }
     const msg = encodeURIComponent(getWhatsAppMessage());
     window.open(`https://wa.me/${DEV_PHONE}?text=${msg}`, "_blank");
-  }, [getWhatsAppMessage]);
-
-  const showMissingWhatsAppNumber = useCallback(() => {
-    window.alert(translations.whatsappNotConfigured as string);
-  }, [translations]);
+  }, [getWhatsAppMessage, showMissingWhatsAppNumber]);
 
   // Quote generation
   const triggerQuoteGeneration = useCallback(() => {
@@ -372,6 +351,27 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
       }
     }, 520);
   }, [frontend, devLanguage, backend, database, modules, pages, openWhatsApp]);
+
+  const handleNext = useCallback(() => {
+    setValidationError(null);
+    const error = validateStep(currentStep);
+    if (error) {
+      setValidationError(error);
+      return;
+    }
+    if (currentStep < 9) {
+      goToStep(currentStep + 1);
+      return;
+    }
+    triggerQuoteGeneration();
+  }, [currentStep, goToStep, triggerQuoteGeneration, validateStep]);
+
+  const handleBack = useCallback(() => {
+    setValidationError(null);
+    if (currentStep > 0) {
+      setCurrentStep((prev) => prev - 1);
+    }
+  }, [currentStep]);
 
   // PDF generation
   const handleDownloadPDF = useCallback(async () => {
@@ -519,6 +519,7 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
     frontend, devLanguage, backend, database,
     features, pages, relations,
     quote.days, quote.breakdown, quote.total,
+    isSubmitting,
   ]);
 
   // Download JSON with save to database first (only POST once, then just download)

@@ -12,7 +12,7 @@ if (uri) {
   if (process.env.NODE_ENV === 'development') {
     // In development mode, use a global variable so that the value
     // is preserved across module reloads.
-    let globalWithMongo = global as typeof globalThis & {
+    const globalWithMongo = global as typeof globalThis & {
       _mongoClientPromise?: Promise<MongoClient>;
     };
 

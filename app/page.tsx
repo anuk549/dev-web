@@ -190,7 +190,6 @@ export default function Home() {
         <section className="min-w-0">
           {currentStep === 0 ? (
             <WelcomeScreen
-              quoteTotal={quote.total}
               days={quote.days}
               onStart={() => goToStep(1)}
             />
@@ -270,49 +269,49 @@ export default function Home() {
                       label={t.loginRegister as string}
                       desc="Secure user authentication"
                       active={features.login}
-                      set={(v) => toggleFeature("login")}
+                      set={() => toggleFeature("login")}
                       icon="ti-user-check"
                     />
                     <ToggleCard
                       label={t.passwordEncryption as string}
                       desc="Bcrypt hashing security"
                       active={features.encrypt}
-                      set={(v) => toggleFeature("encrypt")}
+                      set={() => toggleFeature("encrypt")}
                       icon="ti-shield-lock"
                     />
                     <ToggleCard
                       label={t.jwtTokens as string}
                       desc="Token-based authentication"
                       active={features.jwt}
-                      set={(v) => toggleFeature("jwt")}
+                      set={() => toggleFeature("jwt")}
                       icon="ti-key"
                     />
                     <ToggleCard
                       label={t.adminDashboard as string}
                       desc="Management control panel"
                       active={features.admin}
-                      set={(v) => toggleFeature("admin")}
+                      set={() => toggleFeature("admin")}
                       icon="ti-dashboard"
                     />
                     <ToggleCard
                       label={t.emailAutomation as string}
                       desc="Automated email system"
                       active={features.email}
-                      set={(v) => toggleFeature("email")}
+                      set={() => toggleFeature("email")}
                       icon="ti-mail"
                     />
                     <ToggleCard
                       label={t.fileUploads as string}
                       desc="Secure file handling"
                       active={features.upload}
-                      set={(v) => toggleFeature("upload")}
+                      set={() => toggleFeature("upload")}
                       icon="ti-cloud-upload"
                     />
                     <ToggleCard
                       label={t.searchFeature as string}
                       desc="Application-wide search"
                       active={features.search}
-                      set={(v) => toggleFeature("search")}
+                      set={() => toggleFeature("search")}
                       icon="ti-search"
                     />
                   </div>
@@ -341,7 +340,7 @@ export default function Home() {
                 {currentStep === 7 && (
                   <RelationsEditor
                     fk={fk}
-                    setFk={(v) => toggleFeature("fk")}
+                    setFk={() => toggleFeature("fk")}
                     pages={pages}
                     relations={relations}
                     sourceTable={quoteBuilder.sourceTable}

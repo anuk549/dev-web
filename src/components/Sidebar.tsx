@@ -3,7 +3,6 @@
  * Navigation sidebar showing step progress and allowing step navigation
  */
 
-import type { StepItem } from "@/src/types/quote";
 import { STEP_ITEMS } from "@/src/constants";
 
 interface SidebarProps {

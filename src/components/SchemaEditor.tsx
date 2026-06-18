@@ -166,7 +166,7 @@ export function SchemaEditor({
                 </select>
                 <button
                   type="button"
-                  onClick={(_e) => handleRemoveField(activePageIdx, idx)}
+                  onClick={() => handleRemoveField(activePageIdx, idx)}
                   className="grid h-11 w-full place-items-center rounded-xl text-rose-500 hover:bg-rose-50"
                 >
                   <i className="ti ti-trash" />

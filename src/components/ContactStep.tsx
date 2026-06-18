@@ -5,7 +5,6 @@
 
 import type { QuoteBreakdown } from "@/src/types/quote";
 import { TextInput } from "@/src/components/ui";
-import { DEV_PHONE } from "@/src/constants";
 
 interface ContactStepProps {
   clientName: string;
@@ -73,22 +72,14 @@ export function ContactStep({
   setClientEmail,
   setClientWa,
   setClientDesc,
-  breakdown,
   days,
-  onWhatsApp,
-  onDownloadPDF,
-  onDownloadJSON,
-  onDownloadJSONWithSave,
   onWhatsAppWithSave,
   onDownloadPDFWithSave,
-  onShareWithDevWithSave,
   saveToDbLoading,
-  saveToDbSuccess,
   successMsgVisible,
   hasBeenSubmitted,
 }: ContactStepProps) {
   // Validation state
-  const nameError = clientName.trim().length > 0 ? "" : "";
   const emailError = (() => {
     if (clientEmail.trim().length === 0) return "";
     if (!isValidEmail(clientEmail.trim())) {
@@ -116,19 +107,12 @@ export function ContactStep({
   const isFormValid = hasName && hasContactMethod;
   // Disable buttons during loading or when form is invalid
   const areButtonsDisabled = !isFormValid || saveToDbLoading;
-  // Disable share button after successful submission to prevent duplicate POST
-  const isShareButtonDisabled = areButtonsDisabled || hasBeenSubmitted;
-
-  // Show validation hints when user has interacted with fields
-  const showNameHint = clientName.trim().length > 0 && clientName.trim().length < 2;
-  const showContactHint = hasEmail && !emailValid || hasWa && !waValid;
-
   return (
-    <div className="grid gap-6 lg:grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px]">
+    <div className="mx-auto grid max-w-4xl gap-6 xl:max-w-none xl:grid-cols-1">
       {/* Contact Form */}
-      <div className="grid gap-5 sm:grid-cols-2 lg:col-span-1">
+      <div className="grid gap-5 lg:grid-cols-2">
         {/* Name field - full width on mobile */}
-        <div className="sm:col-span-2">
+        <div>
           <TextInput
             label="Your name"
             required
@@ -140,7 +124,7 @@ export function ContactStep({
         </div>
 
         {/* University field - full width on mobile */}
-        <div className="sm:col-span-2">
+        <div>
           <TextInput
             label="University / course"
             value={clientUni}
@@ -150,26 +134,28 @@ export function ContactStep({
         </div>
 
         {/* Email and WhatsApp - side by side on desktop */}
-        <TextInput
-          label="Email"
-          required
-          type="email"
-          value={clientEmail}
-          onChange={setClientEmail}
-          placeholder="your@email.com"
-          error={emailError || undefined}
-        />
-        <TextInput
-          label="WhatsApp number"
-          value={clientWa}
-          onChange={setClientWa}
-          placeholder="+94 7X XXX XXXX"
-          error={waError || undefined}
-        />
+        <div className="grid gap-4 rounded-3xl border border-slate-200 bg-slate-50 p-4 lg:col-span-2 lg:grid-cols-2">
+          <TextInput
+            label="Email"
+            required
+            type="email"
+            value={clientEmail}
+            onChange={setClientEmail}
+            placeholder="your@email.com"
+            error={emailError || undefined}
+          />
+          <TextInput
+            label="WhatsApp number"
+            value={clientWa}
+            onChange={setClientWa}
+            placeholder="+94 7X XXX XXXX"
+            error={waError || undefined}
+          />
+        </div>
         
         {/* Validation hint */}
         {(!hasEmail && !hasWa) && (
-          <div className="sm:col-span-2 rounded-2xl bg-amber-50 border border-amber-200 p-4">
+          <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 lg:col-span-2">
             <div className="flex items-start gap-2">
               <i className="ti ti-info-circle mt-0.5 text-amber-600" />
               <p className="text-xs font-bold text-amber-700 leading-relaxed">
@@ -180,7 +166,7 @@ export function ContactStep({
         )}
 
         {/* Topic description - full width */}
-        <label className="block sm:col-span-2">
+        <label className="block lg:col-span-2">
           <span className="form-label">Topic details and deadlines</span>
           <textarea
             value={clientDesc}
@@ -193,7 +179,7 @@ export function ContactStep({
 
         {/* Success message after submission */}
         {hasBeenSubmitted && !saveToDbLoading && (
-          <div className="sm:col-span-2 rounded-2xl bg-emerald-50 border border-emerald-200 p-4">
+          <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 lg:col-span-2">
             <div className="flex items-start gap-2">
               <i className="ti ti-check mt-0.5 text-emerald-600" />
               <p className="text-xs font-bold text-emerald-700 leading-relaxed">
@@ -204,7 +190,7 @@ export function ContactStep({
         )}
 
         {/* Action Buttons - Visible on lg+ below form, hidden in summary card on xl */}
-        <div className="hidden lg:flex gap-3 sm:col-span-2 flex-wrap">
+        <div className="hidden gap-3 lg:col-span-2 lg:grid lg:grid-cols-2">
           {/* <button
             type="button"
             onClick={onDownloadJSONWithSave}
@@ -217,7 +203,7 @@ export function ContactStep({
             type="button"
             onClick={onWhatsAppWithSave}
             disabled={areButtonsDisabled}
-            className="flex-1 justify-center rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-500 hover:shadow-emerald-600/30 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg inline-flex items-center min-w-[150px]"
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-500 hover:shadow-emerald-600/30 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
           >
             <i className="ti ti-brand-whatsapp mr-2" /> Send on WhatsApp
           </button>
@@ -225,7 +211,7 @@ export function ContactStep({
             type="button"
             onClick={onDownloadPDFWithSave}
             disabled={areButtonsDisabled}
-            className="flex-1 justify-center rounded-2xl border-2 border-slate-950 px-5 py-3 text-sm font-black text-slate-950 transition-all hover:bg-slate-100 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 inline-flex items-center min-w-[150px]"
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border-2 border-slate-950 px-5 py-3 text-sm font-black text-slate-950 transition-all hover:-translate-y-0.5 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
           >
             <i className="ti ti-file-download mr-2" /> Download PDF Quote
           </button>

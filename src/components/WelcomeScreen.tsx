@@ -7,12 +7,11 @@ import Image from "next/image";
 import { LOGO_SRC, FEEDBACK_ITEMS } from "@/src/constants";
 
 interface WelcomeScreenProps {
-  quoteTotal: number;
   days: number;
   onStart: () => void;
 }
 
-export function WelcomeScreen({ quoteTotal, days, onStart }: WelcomeScreenProps) {
+export function WelcomeScreen({ days, onStart }: WelcomeScreenProps) {
   return (
     <div className="space-y-5">
       <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl shadow-slate-200/70">

@@ -3,7 +3,7 @@
  * Generates a comprehensive JSON structure for AI model project generation
  */
 
-import type { PageSpec, RelationSpec, FieldSpec } from "@/src/types/quote";
+import type { PageSpec, RelationSpec } from "@/src/types/quote";
 
 export interface FeatureFlags {
   login: boolean;
@@ -289,7 +289,6 @@ export function generateProjectSpecification(data: {
   if (features.jwt) authMethods.push("jwt");
 
   // Calculate phase durations
-  const totalTasks = pages.length * 4 + Object.values(features).filter(Boolean).length;
   const devPhase = Math.round(days * 0.6);
   const testPhase = Math.round(days * 0.25);
   const deployPhase = days - devPhase - testPhase;

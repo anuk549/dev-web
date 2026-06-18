@@ -3,6 +3,9 @@
  * Shows a simple preview/summary of all selections before proceeding to contact step
  */
 
+"use client";
+
+import { useRef } from "react";
 import type { PageSpec, RelationSpec, ModuleItem } from "@/src/types/quote";
 
 interface PreviewPanelProps {
@@ -33,11 +36,12 @@ export function PreviewPanel({
   backend,
   database,
   features,
-  modules,
   pages,
   relations,
   days,
 }: PreviewPanelProps) {
+  const tablesScrollerRef = useRef<HTMLDivElement>(null);
+
   const featureItems = [
     { label: "Login & Register", active: features.login, icon: "ti-user-check" },
     { label: "Password Encryption", active: features.encrypt, icon: "ti-shield-lock" },
@@ -48,6 +52,16 @@ export function PreviewPanel({
     { label: "Search Feature", active: features.search, icon: "ti-search" },
     { label: "Foreign Key Relations", active: features.fk, icon: "ti-git-fork" },
   ];
+
+  const scrollTables = (direction: "left" | "right") => {
+    const scroller = tablesScrollerRef.current;
+    if (!scroller) return;
+
+    scroller.scrollBy({
+      left: direction === "left" ? -360 : 360,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -115,53 +129,112 @@ export function PreviewPanel({
       </div>
 
       {/* Schema/Tables Preview */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-teal-100 text-sm font-black text-teal-700">
-            3
-          </span>
-          <h3 className="text-lg font-black text-slate-950">Database Tables</h3>
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white p-5">
+          <div className="flex items-center gap-2">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-teal-100 text-sm font-black text-teal-700">
+              3
+            </span>
+            <div>
+              <h3 className="text-lg font-black text-slate-950">Database Tables</h3>
+              <p className="text-xs font-bold text-slate-400">
+                {pages.length} {pages.length === 1 ? "table" : "tables"} in this project
+              </p>
+            </div>
+          </div>
+          {pages.length > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => scrollTables("left")}
+                aria-label="View previous tables"
+                className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-slate-50 text-slate-600 shadow-sm transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700"
+              >
+                <i className="ti ti-chevron-left" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollTables("right")}
+                aria-label="View next tables"
+                className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-slate-50 text-slate-600 shadow-sm transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700"
+              >
+                <i className="ti ti-chevron-right" />
+              </button>
+            </div>
+          )}
         </div>
-        <div className="space-y-3">
-          {pages.map((page, idx) => (
-            <div key={idx} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <h4 className="font-black text-slate-950">{page.topic || `Table ${idx + 1}`}</h4>
-                <div className="flex gap-1">
-                  {page.create && (
-                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">
-                      C
-                    </span>
-                  )}
-                  {page.read && (
-                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-black uppercase text-blue-700">
-                      R
-                    </span>
-                  )}
-                  {page.update && (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase text-amber-700">
-                      U
-                    </span>
-                  )}
-                  {page.delete && (
-                    <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black uppercase text-rose-700">
-                      D
-                    </span>
+
+        <div
+          ref={tablesScrollerRef}
+          className="flex max-h-[360px] snap-x gap-3 overflow-x-auto overflow-y-hidden scroll-smooth p-5"
+        >
+          {pages.length > 0 ? (
+            pages.map((page, idx) => (
+              <div
+                key={`${page.topic}-${idx}`}
+                className="min-h-52 w-[min(100%,22rem)] flex-none snap-start rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm sm:w-80"
+              >
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+                      Table {idx + 1}
+                    </p>
+                    <h4 className="mt-1 truncate text-base font-black text-slate-950">
+                      {page.topic || `Table ${idx + 1}`}
+                    </h4>
+                  </div>
+                  <div className="flex flex-shrink-0 gap-1">
+                    {page.create && (
+                      <span className="grid h-6 w-6 place-items-center rounded-full bg-emerald-100 text-[10px] font-black uppercase text-emerald-700">
+                        C
+                      </span>
+                    )}
+                    {page.read && (
+                      <span className="grid h-6 w-6 place-items-center rounded-full bg-blue-100 text-[10px] font-black uppercase text-blue-700">
+                        R
+                      </span>
+                    )}
+                    {page.update && (
+                      <span className="grid h-6 w-6 place-items-center rounded-full bg-amber-100 text-[10px] font-black uppercase text-amber-700">
+                        U
+                      </span>
+                    )}
+                    {page.delete && (
+                      <span className="grid h-6 w-6 place-items-center rounded-full bg-rose-100 text-[10px] font-black uppercase text-rose-700">
+                        D
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="h-36 space-y-2 overflow-y-auto pr-1">
+                  {page.fields.length > 0 ? (
+                    page.fields.map((field, fieldIdx) => (
+                      <div
+                        key={fieldIdx}
+                        className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2"
+                      >
+                        <span className="min-w-0 truncate text-sm font-bold text-slate-700">
+                          {field.label || "field"}
+                        </span>
+                        <span className="flex-shrink-0 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-black text-teal-700">
+                          {field.type}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="grid h-full place-items-center rounded-xl border border-dashed border-slate-200 bg-white text-sm font-bold text-slate-400">
+                      No attributes yet
+                    </div>
                   )}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {page.fields.map((field, fieldIdx) => (
-                  <span
-                    key={fieldIdx}
-                    className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 border border-slate-200"
-                  >
-                    {field.label || "field"}: <span className="text-teal-600">{field.type}</span>
-                  </span>
-                ))}
-              </div>
+            ))
+          ) : (
+            <div className="grid min-h-40 w-full place-items-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-sm font-bold text-slate-400">
+              No database tables selected
             </div>
-          ))}
+          )}
         </div>
       </div>
 

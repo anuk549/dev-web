@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/mongodb';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const db = await getDatabase();
     

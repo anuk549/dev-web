@@ -34,6 +34,7 @@ export function calculateQuote(
   },
   relations: RelationSpec[]
 ): QuoteResult {
+  void relations;
   const breakdown: QuoteBreakdown[] = [];
   let total = 0;
 
