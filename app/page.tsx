@@ -230,37 +230,49 @@ export default function Home() {
                         setDatabase("MongoDB");
                         goToStep(6); // Skip to Features step
                       }}
-                      className="btn-primary"
+                      className="btn-primary p-6 text-lg"
                     >
-                      Use Default Stack
+                      <i className="ti ti-rocket text-2xl mb-2" />
+                      <div>Use Default Stack</div>
+                      <div className="text-sm font-normal opacity-80 mt-1">
+                        Next.js + TypeScript + Next.js API + MongoDB
+                      </div>
                     </button>
                     <button
                       type="button"
                       onClick={() => goToStep(2)}
-                      className="btn-secondary"
+                      className="btn-secondary p-6 text-lg"
                     >
-                      Custom Setup
+                      <i className="ti ti-settings text-2xl mb-2" />
+                      <div>Custom Setup</div>
+                      <div className="text-sm font-normal opacity-80 mt-1">
+                        Choose your own technologies
+                      </div>
                     </button>
-                    <div className="sm:col-span-2 flex items-center justify-center gap-4 pt-4 border-t border-slate-200">
-                      <a
-                        href={DEV_PHONE ? `https://wa.me/${DEV_PHONE}` : "#"}
-                        onClick={(event) => {
-                          if (!DEV_PHONE) {
-                            event.preventDefault();
-                          }
-                        }}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn-primary"
-                      >
-                        <i className="ti ti-brand-whatsapp" /> WhatsApp
-                      </a>
-                      <a
-                        href="mailto:hello@example.com"
-                        className="btn-secondary"
-                      >
-                        <i className="ti ti-mail" /> Email
-                      </a>
+                    <div className="sm:col-span-2 text-center pt-2">
+                      <p className="text-sm text-slate-500">
+                        Not sure? Contact us on{" "}
+                        <a
+                          href={DEV_PHONE ? `https://wa.me/${DEV_PHONE}` : "#"}
+                          onClick={(event) => {
+                            if (!DEV_PHONE) {
+                              event.preventDefault();
+                            }
+                          }}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-bold text-emerald-600 hover:text-emerald-700"
+                        >
+                          WhatsApp
+                        </a>{" "}
+                        or{" "}
+                        <a
+                          href="mailto:hello@example.com"
+                          className="font-bold text-slate-700 hover:text-slate-900"
+                        >
+                          Email
+                        </a>
+                      </p>
                     </div>
                   </div>
                 )}

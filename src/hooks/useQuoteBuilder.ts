@@ -64,8 +64,8 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
 
   // Feature flags
   const [features, setFeatures] = useState<FeatureFlags>({
-    login: true,
-    encrypt: true,
+    login: false,
+    encrypt: false,
     jwt: false,
     admin: false,
     email: false,
@@ -572,8 +572,8 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
     setBackend(BACKEND_OPTIONS[0].name);
     setDatabase(DATABASE_OPTIONS[0].name);
     setFeatures({
-      login: true,
-      encrypt: true,
+      login: false,
+      encrypt: false,
       jwt: false,
       admin: false,
       email: false,
