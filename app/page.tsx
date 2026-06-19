@@ -230,25 +230,38 @@ export default function Home() {
                         setDatabase("MongoDB");
                         goToStep(6); // Skip to Features step
                       }}
-                      className="btn-primary p-6 text-lg"
+                      className="btn-primary"
                     >
-                      <i className="ti ti-rocket text-2xl mb-2" />
-                      <div>Use Default Stack</div>
-                      <div className="text-sm font-normal opacity-80 mt-1">
-                        Next.js + TypeScript + Next.js API + MongoDB
-                      </div>
+                      Use Default Stack
                     </button>
                     <button
                       type="button"
                       onClick={() => goToStep(2)}
-                      className="btn-secondary p-6 text-lg"
+                      className="btn-secondary"
                     >
-                      <i className="ti ti-settings text-2xl mb-2" />
-                      <div>Custom Setup</div>
-                      <div className="text-sm font-normal opacity-80 mt-1">
-                        Choose your own technologies
-                      </div>
+                      Custom Setup
                     </button>
+                    <div className="sm:col-span-2 flex items-center justify-center gap-4 pt-4 border-t border-slate-200">
+                      <a
+                        href={DEV_PHONE ? `https://wa.me/${DEV_PHONE}` : "#"}
+                        onClick={(event) => {
+                          if (!DEV_PHONE) {
+                            event.preventDefault();
+                          }
+                        }}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn-primary"
+                      >
+                        <i className="ti ti-brand-whatsapp" /> WhatsApp
+                      </a>
+                      <a
+                        href="mailto:hello@example.com"
+                        className="btn-secondary"
+                      >
+                        <i className="ti ti-mail" /> Email
+                      </a>
+                    </div>
                   </div>
                 )}
 
