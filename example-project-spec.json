@@ -13,16 +13,140 @@
   },
   "stack": {
     "frontend": {
-      "framework": "React",
-      "language": "TypeScript"
+      "framework": "Next.js",
+      "language": "TypeScript",
+      "styling": "Tailwind CSS",
+      "uiLibrary": "shadcn/ui"
     },
     "backend": {
-      "framework": "Next.js API",
-      "runtime": "Node.js"
+      "framework": "Next.js API Routes",
+      "runtime": "Node.js",
+      "architecture": "Server-Side Rendering"
     },
     "database": {
-      "engine": "PostgreSQL"
+      "engine": "PostgreSQL",
+      "orm": "Prisma"
     }
+  },
+  "projectStructure": {
+    "root": {
+      "app/": {
+        "description": "Next.js App Router directory",
+        "structure": {
+          "(auth)/": "Authentication routes group",
+          "(dashboard)/": "Dashboard routes group",
+          "api/": "API routes for backend",
+          "layout.tsx": "Root layout",
+          "page.tsx": "Home page",
+          "globals.css": "Global styles"
+        }
+      },
+      "components/": {
+        "description": "Reusable React components",
+        "structure": {
+          "ui/": "shadcn/ui base components",
+          "layout/": "Layout components (Header, Footer, Sidebar)",
+          "features/": "Feature-specific components",
+          "forms/": "Form components",
+          "common/": "Shared/common components"
+        }
+      },
+      "lib/": {
+        "description": "Utility functions and configurations",
+        "structure": {
+          "db.ts": "Database connection",
+          "auth.ts": "Authentication utilities",
+          "utils.ts": "General utilities",
+          "validators.ts": "Input validation schemas"
+        }
+      },
+      "server/": {
+        "description": "Server-side logic",
+        "structure": {
+          "actions/": "Server actions",
+          "services/": "Business logic services",
+          "middleware/": "Custom middleware"
+        }
+      },
+      "client/": {
+        "description": "Client-side specific code",
+        "structure": {
+          "hooks/": "Custom React hooks",
+          "store/": "State management (Zustand/Context)",
+          "context/": "React contexts"
+        }
+      },
+      "database/": {
+        "description": "Database related files",
+        "structure": {
+          "schema.prisma": "Prisma schema",
+          "migrations/": "Database migrations",
+          "seed.ts": "Database seeding script"
+        }
+      },
+      "public/": {
+        "description": "Static assets",
+        "structure": {
+          "images/": "Image assets",
+          "icons/": "Icon files",
+          "fonts/": "Font files"
+        }
+      }
+    },
+    "componentBestPractices": {
+      "reusability": "Create small, single-purpose components",
+      "composition": "Use composition over inheritance",
+      "types": "Use TypeScript interfaces for props",
+      "naming": "Use PascalCase for component names",
+      "separation": "Separate UI components from business logic"
+    }
+  },
+  "databaseSetup": {
+    "steps": [
+      {
+        "step": 1,
+        "title": "Install Prisma",
+        "command": "npm install prisma --save-dev",
+        "description": "Install Prisma ORM for database management"
+      },
+      {
+        "step": 2,
+        "title": "Initialize Prisma",
+        "command": "npx prisma init",
+        "description": "Initialize Prisma in your project"
+      },
+      {
+        "step": 3,
+        "title": "Configure Database URL",
+        "file": ".env",
+        "content": "DATABASE_URL=\"postgresql://user:password@localhost:5432/mydb?schema=public\"",
+        "description": "Set up your PostgreSQL connection string"
+      },
+      {
+        "step": 4,
+        "title": "Define Schema",
+        "file": "prisma/schema.prisma",
+        "description": "Define your database models in Prisma schema"
+      },
+      {
+        "step": 5,
+        "title": "Create Migrations",
+        "command": "npx prisma migrate dev --name init",
+        "description": "Create and apply initial database migration"
+      },
+      {
+        "step": 6,
+        "title": "Generate Prisma Client",
+        "command": "npx prisma generate",
+        "description": "Generate TypeScript types for your database"
+      },
+      {
+        "step": 7,
+        "title": "Create Database Connection",
+        "file": "lib/db.ts",
+        "description": "Set up Prisma client singleton for server-side"
+      }
+    ]
   },
   "features": {
     "authentication": {
@@ -170,5 +294,62 @@
       }
     ],
     "total": 70000
+  },
+  "recommendations": {
+    "frontend": {
+      "ifNextJsSelected": {
+        "backend": "Next.js API Routes",
+        "reason": "Seamless integration with Next.js, server-side rendering support, type-safe API routes, no need for separate backend server",
+        "alternatives": [
+          {
+            "option": "Express.js",
+            "useCase": "When you need more control over server configuration or have complex middleware requirements"
+          },
+          {
+            "option": "Fastify",
+            "useCase": "When performance is critical and you need faster request handling"
+          },
+          {
+            "option": "tRPC",
+            "useCase": "When you want end-to-end type safety between frontend and backend"
+          }
+        ]
+      }
+    },
+    "database": {
+      "ifPostgreSQLSelected": {
+        "orm": "Prisma",
+        "reason": "Type-safe database client, excellent TypeScript support, easy migrations, great developer experience",
+        "alternatives": [
+          {
+            "option": "Drizzle ORM",
+            "useCase": "When you prefer SQL-like syntax and want lightweight ORM"
+          },
+          {
+            "option": "TypeORM",
+            "useCase": "When you need decorator-based entity definition"
+          }
+        ]
+      }
+    },
+    "styling": {
+      "ifNextJsSelected": {
+        "primary": "Tailwind CSS",
+        "primaryReason": "Utility-first CSS framework, excellent with Next.js, highly customizable, great performance",
+        "uiLibrary": "shadcn/ui",
+        "uiLibraryReason": "Modern, accessible components built on Radix UI, fully customizable, copy-paste components"
+      }
+    },
+    "stateManagement": {
+      "ifNextJsSelected": {
+        "simple": "React Context API",
+        "complex": "Zustand",
+        "reason": "Lightweight, simple API, great TypeScript support, no boilerplate"
+      }
+    },
+    "authentication": {
+      "recommended": "NextAuth.js",
+      "reason": "Official Next.js authentication solution, supports multiple providers, built-in session management"
+    }
   }
 }

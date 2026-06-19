@@ -218,8 +218,42 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Step 1: Frontend */}
+                {/* Step 1: Quick Start */}
                 {currentStep === 1 && (
+                  <div className="grid gap-4 sm:grid-cols-2 max-w-2xl mx-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFrontend("Next.js");
+                        setDevLanguage("TypeScript");
+                        setBackend("Next.js API");
+                        setDatabase("MongoDB");
+                        goToStep(6); // Skip to Features step
+                      }}
+                      className="btn-primary p-6 text-lg"
+                    >
+                      <i className="ti ti-rocket text-2xl mb-2" />
+                      <div>Use Default Stack</div>
+                      <div className="text-sm font-normal opacity-80 mt-1">
+                        Next.js + TypeScript + Next.js API + MongoDB
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => goToStep(2)}
+                      className="btn-secondary p-6 text-lg"
+                    >
+                      <i className="ti ti-settings text-2xl mb-2" />
+                      <div>Custom Setup</div>
+                      <div className="text-sm font-normal opacity-80 mt-1">
+                        Choose your own technologies
+                      </div>
+                    </button>
+                  </div>
+                )}
+
+                {/* Step 2: Frontend */}
+                {currentStep === 2 && (
                   <ChoiceGrid
                     cols="sm:grid-cols-2"
                     items={FRONTEND_OPTIONS}
@@ -229,8 +263,8 @@ export default function Home() {
                   />
                 )}
 
-                {/* Step 2: Language */}
-                {currentStep === 2 && (
+                {/* Step 3: Language */}
+                {currentStep === 3 && (
                   <ChoiceGrid
                     cols="sm:grid-cols-2"
                     items={LANGUAGE_OPTIONS}
@@ -240,8 +274,8 @@ export default function Home() {
                   />
                 )}
 
-                {/* Step 3: Backend */}
-                {currentStep === 3 && (
+                {/* Step 4: Backend */}
+                {currentStep === 4 && (
                   <ChoiceGrid
                     cols="sm:grid-cols-3"
                     items={BACKEND_OPTIONS}
@@ -251,8 +285,8 @@ export default function Home() {
                   />
                 )}
 
-                {/* Step 4: Database */}
-                {currentStep === 4 && (
+                {/* Step 5: Database */}
+                {currentStep === 5 && (
                   <ChoiceGrid
                     cols="sm:grid-cols-4"
                     items={DATABASE_OPTIONS}
@@ -262,8 +296,8 @@ export default function Home() {
                   />
                 )}
 
-                {/* Step 5: Features */}
-                {currentStep === 5 && (
+                {/* Step 6: Features */}
+                {currentStep === 6 && (
                   <div className="grid gap-3 sm:grid-cols-2">
                     <ToggleCard
                       label={t.loginRegister as string}
@@ -279,13 +313,15 @@ export default function Home() {
                       set={() => toggleFeature("encrypt")}
                       icon="ti-shield-lock"
                     />
-                    <ToggleCard
-                      label={t.jwtTokens as string}
-                      desc="Token-based authentication"
-                      active={features.jwt}
-                      set={() => toggleFeature("jwt")}
-                      icon="ti-key"
-                    />
+                    {backend === "Spring Boot" && (
+                      <ToggleCard
+                        label={t.jwtTokens as string}
+                        desc="Token-based authentication"
+                        active={features.jwt}
+                        set={() => toggleFeature("jwt")}
+                        icon="ti-key"
+                      />
+                    )}
                     <ToggleCard
                       label={t.adminDashboard as string}
                       desc="Management control panel"
@@ -300,25 +336,11 @@ export default function Home() {
                       set={() => toggleFeature("email")}
                       icon="ti-mail"
                     />
-                    <ToggleCard
-                      label={t.fileUploads as string}
-                      desc="Secure file handling"
-                      active={features.upload}
-                      set={() => toggleFeature("upload")}
-                      icon="ti-cloud-upload"
-                    />
-                    <ToggleCard
-                      label={t.searchFeature as string}
-                      desc="Application-wide search"
-                      active={features.search}
-                      set={() => toggleFeature("search")}
-                      icon="ti-search"
-                    />
                   </div>
                 )}
 
-                {/* Step 6: Schema */}
-                {currentStep === 6 && activePage && (
+                {/* Step 7: Schema */}
+                {currentStep === 7 && activePage && (
                   <div className="max-w-5xl mx-auto">
                     <SchemaEditor
                       pages={pages}
@@ -336,8 +358,8 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Step 7: Relations */}
-                {currentStep === 7 && (
+                {/* Step 8: Relations */}
+                {currentStep === 8 && (
                   <RelationsEditor
                     fk={fk}
                     setFk={() => toggleFeature("fk")}
@@ -354,8 +376,8 @@ export default function Home() {
                   />
                 )}
 
-                {/* Step 8: Preview */}
-                {currentStep === 8 && (
+                {/* Step 9: Preview */}
+                {currentStep === 9 && (
                   <PreviewPanel
                     frontend={frontend}
                     devLanguage={devLanguage}
@@ -370,8 +392,8 @@ export default function Home() {
                   />
                 )}
 
-                {/* Step 9: Contact */}
-                {currentStep === 9 && (
+                {/* Step 10: Contact */}
+                {currentStep === 10 && (
                   <ContactStep
                     clientName={clientName}
                     clientUni={clientUni}
@@ -406,12 +428,12 @@ export default function Home() {
               </div>
 
               {/* Navigation Buttons */}
-              {currentStep < 9 && (
+              {currentStep < 10 && (
                 <div className="flex items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-4 py-4 sm:px-6">
                   <button type="button" onClick={handleBack} className="btn-secondary">
                     <i className="ti ti-arrow-left" /> {t.back}
                   </button>
-                  {currentStep === 7 ? (
+                  {currentStep === 8 ? (
                     <button type="button" onClick={handleNext} className="btn-primary">
                       <i className="ti ti-rocket" /> {t.compileQuote} <i className="ti ti-arrow-right" />
                     </button>

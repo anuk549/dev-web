@@ -14,6 +14,13 @@ function getPagePrice(page: PageSpec): number {
   if (page.update) price += 400;
   if (page.delete) price += 400;
   if (page.search) price += 300;
+  
+  // Add additional fee for Image/File fields
+  const imageFileFields = page.fields.filter(f => f.type === "Image/File").length;
+  if (imageFileFields > 0) {
+    price += imageFileFields * 200; // $200 per Image/File field
+  }
+  
   return price;
 }
 

@@ -25,6 +25,7 @@ export const translations = {
     // Steps
     stepTitles: [
       "Build a professional web project quote",
+      "Quick start or custom setup",
       "Choose the frontend experience",
       "Select the development language",
       "Pick your backend architecture",
@@ -37,6 +38,7 @@ export const translations = {
     ],
     // Step labels
     stepLabels: [
+      "Quick Start",
       "Frontend",
       "Language",
       "Backend",
@@ -53,16 +55,18 @@ export const translations = {
     compileQuote: "Compile Quote",
     progress: "Progress",
     buildingRequest: "Building request",
-    // Step 1 - Frontend
-    step1Title: "Choose the frontend experience",
-    // Step 2 - Language
-    step2Title: "Select the development language",
-    // Step 3 - Backend
-    step3Title: "Pick your backend architecture",
-    // Step 4 - Database
-    step4Title: "Choose the database layer",
-    // Step 5 - Features
-    step5Title: "Add the features your project needs",
+    // Step 1 - Quick Start
+    step1Title: "Quick start or custom setup",
+    // Step 2 - Frontend
+    step2Title: "Choose the frontend experience",
+    // Step 3 - Language
+    step3Title: "Select the development language",
+    // Step 4 - Backend
+    step4Title: "Pick your backend architecture",
+    // Step 5 - Database
+    step5Title: "Choose the database layer",
+    // Step 6 - Features
+    step6Title: "Add the features your project needs",
     loginRegister: "Login & register",
     passwordEncryption: "Password encryption",
     jwtTokens: "JWT tokens",
@@ -70,22 +74,22 @@ export const translations = {
     emailAutomation: "Email automation",
     fileUploads: "File uploads",
     searchFeature: "Search feature",
-    // Step 6 - Schema
-    step6Title: "Model your pages and data",
+    // Step 7 - Schema
+    step7Title: "Model your pages and data",
     tables: "Tables",
     tableName: "Table name",
     actions: "Actions",
     attributes: "Attributes",
-    // Step 7 - Relations
-    step7Title: "Connect your database tables",
+    // Step 8 - Relations
+    step8Title: "Connect your database tables",
     enableRelations: "Enable table relationships",
     addRelationship: "Add relationship",
     sourceModel: "Source model",
     relation: "Relation",
     targetModel: "Target model",
     noRelations: "No relationships added yet.",
-    // Step 8 - Contact
-    step8Title: "Share the request with Dev+",
+    // Step 10 - Contact
+    step10Title: "Share the request with Dev+",
     yourName: "Your name",
     universityCourse: "University / course",
     email: "Email",
@@ -154,6 +158,7 @@ export const translations = {
     // Steps
     stepTitles: [
       "වෘත්තීය වෙබ් ව්‍යාපෘති මිල ගණන් ගොඩනගාගන්න",
+      "වේගවත් ආරම්භය හෝ අභිරුචි සැකසුම",
       "Frontend අත්දැකීම තෝරාගන්න",
       "සංවර්ධන භාෂාව තෝරාගන්න",
       "ඔබේ backend ගෘහනිර්මාණ ශිල්පය තෝරාගන්න",
@@ -166,6 +171,7 @@ export const translations = {
     ],
     // Step labels
     stepLabels: [
+      "වේගවත් ආරම්භය",
       "Frontend",
       "භාෂාව",
       "Backend",
@@ -182,16 +188,18 @@ export const translations = {
     compileQuote: "මිල ගණන් සකසන්න",
     progress: "ප්‍රගතිය",
     buildingRequest: "ඉල්ලීම ගොඩනගමින්",
-    // Step 1 - Frontend
-    step1Title: "Frontend අත්දැකීම තෝරාගන්න",
-    // Step 2 - Language
-    step2Title: "සංවර්ධන භාෂාව තෝරාගන්න",
-    // Step 3 - Backend
-    step3Title: "ඔබේ backend ගෘහනිර්මාණ ශිල්පය තෝරාගන්න",
-    // Step 4 - Database
-    step4Title: "දත්ත සමුදා ස්ථරය තෝරාගන්න",
-    // Step 5 - Features
-    step5Title: "ඔබේ ව්‍යාපෘතියට අවශ්‍ය විශේෂාංග එකතු කරන්න",
+    // Step 1 - Quick Start
+    step1Title: "වේගවත් ආරම්භය හෝ අභිරුචි සැකසුම",
+    // Step 2 - Frontend
+    step2Title: "Frontend අත්දැකීම තෝරාගන්න",
+    // Step 3 - Language
+    step3Title: "සංවර්ධන භාෂාව තෝරාගන්න",
+    // Step 4 - Backend
+    step4Title: "ඔබේ backend ගෘහනිර්මාණ ශිල්පය තෝරාගන්න",
+    // Step 5 - Database
+    step5Title: "දත්ත සමුදා ස්ථරය තෝරාගන්න",
+    // Step 6 - Features
+    step6Title: "ඔබේ ව්‍යාපෘතියට අවශ්‍ය විශේෂාංග එකතු කරන්න",
     loginRegister: "පිවිසුම සහ ලියාපදිංචිය",
     passwordEncryption: "මුරපද සංකේතනය",
     jwtTokens: "JWT ටෝකන",
@@ -199,22 +207,24 @@ export const translations = {
     emailAutomation: "ඊමේල් ස්වයංක්‍රීය කිරීම",
     fileUploads: "ගොනු උඩුගත කිරීම්",
     searchFeature: "සෙවුම් විශේෂාංගය",
-    // Step 6 - Schema
-    step6Title: "ඔබේ පිටු සහ දත්ත ආකෘතිගත කරන්න",
+    // Step 7 - Schema
+    step7Title: "ඔබේ පිටු සහ දත්ත ආකෘතිගත කරන්න",
     tables: "වගු",
     tableName: "වගුවේ නම",
     actions: "ක්‍රියා",
     attributes: "ගුණාංග",
-    // Step 7 - Relations
-    step7Title: "ඔබේ දත්ත සමුදා වගු සම්බන්ධ කරන්න",
+    // Step 8 - Relations
+    step8Title: "ඔබේ දත්ත සමුදා වගු සම්බන්ධ කරන්න",
     enableRelations: "වගු සම්බන්ධතා සක්‍රිය කරන්න",
     addRelationship: "සම්බන්ධතාවය එකතු කරන්න",
     sourceModel: "මූලාශ්‍ර ආකෘතිය",
     relation: "සම්බන්ධතාවය",
     targetModel: "ඉලක්ක ආකෘතිය",
     noRelations: "තවම සම්බන්ධතා එකතු කර නැත.",
-    // Step 8 - Contact
-    step8Title: "ඉල්ලීම Dev+ සමඟ බෙදාගන්න",
+    // Step 9 - Contact
+    step9Title: "ඉල්ලීම Dev+ සමඟ බෙදාගන්න",
+    // Step 10 - Contact  
+    step10Title: "ඉල්ලීම Dev+ සමඟ බෙදාගන්න",
     yourName: "ඔබේ නම",
     universityCourse: "විශ්වවිද්‍යාලය / පාඨමාලාව",
     email: "ඊමේල්",

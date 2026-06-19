@@ -5,6 +5,44 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
+function getDatabaseErrorResponse(error: unknown) {
+  const message = error instanceof Error ? error.message : 'Unknown error';
+  const code = typeof error === 'object' && error !== null && 'code' in error
+    ? String(error.code)
+    : undefined;
+
+  if (code === 'ENOTFOUND' || message.includes('querySrv ENOTFOUND')) {
+    return {
+      status: 503,
+      body: {
+        success: false,
+        message: 'MongoDB host could not be resolved. Check MONGODB_URI and DNS/network access.',
+        error: message,
+      },
+    };
+  }
+
+  if (code === 'ETIMEDOUT' || code === 'ECONNREFUSED' || message.includes('Server selection timed out')) {
+    return {
+      status: 503,
+      body: {
+        success: false,
+        message: 'MongoDB is unreachable. Check Atlas network access and your connection string.',
+        error: message,
+      },
+    };
+  }
+
+  return {
+    status: 500,
+    body: {
+      success: false,
+      message: 'Database request failed',
+      error: message,
+    },
+  };
+}
+
 // POST - Insert a new document into a collection
 export async function POST(request: NextRequest) {
   try {
@@ -35,14 +73,8 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('POST error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to insert document',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const response = getDatabaseErrorResponse(error);
+    return NextResponse.json(response.body, { status: response.status });
   }
 }
 
@@ -80,14 +112,8 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('GET error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to retrieve data',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const response = getDatabaseErrorResponse(error);
+    return NextResponse.json(response.body, { status: response.status });
   }
 }
 
@@ -117,14 +143,8 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('PUT error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to update document',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const response = getDatabaseErrorResponse(error);
+    return NextResponse.json(response.body, { status: response.status });
   }
 }
 
@@ -154,13 +174,7 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('DELETE error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to delete document',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const response = getDatabaseErrorResponse(error);
+    return NextResponse.json(response.body, { status: response.status });
   }
 }

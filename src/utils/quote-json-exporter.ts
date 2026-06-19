@@ -24,6 +24,7 @@ export interface FieldDefinition {
     nullable?: boolean;
     unique?: boolean;
   };
+  additionalFee?: number;
 }
 
 export interface TableDefinition {
@@ -190,6 +191,7 @@ export function generateProjectSpecification(data: {
         nullable: idx > 0,
         unique: idx === 0 && field.label.toLowerCase() === "id",
       },
+      additionalFee: field.type === "Image/File" ? 200 : 0, // Add additional fee for Image/File fields
     }));
 
     return {

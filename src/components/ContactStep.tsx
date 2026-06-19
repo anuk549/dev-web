@@ -183,7 +183,7 @@ export function ContactStep({
             <div className="flex items-start gap-2">
               <i className="ti ti-check mt-0.5 text-emerald-600" />
               <p className="text-xs font-bold text-emerald-700 leading-relaxed">
-                Your project has been saved successfully. You can still download JSON or PDF, or send via WhatsApp.
+                Your project has been saved successfully. You can still download PDF, or send via WhatsApp.
               </p>
             </div>
           </div>

@@ -39,6 +39,12 @@ interface FeatureFlags {
   fk: boolean;
 }
 
+interface SaveQuoteResponse {
+  success?: boolean;
+  message?: string;
+  error?: string;
+}
+
 /**
  * Custom hook that manages all state and logic for the quote builder
  */
@@ -117,7 +123,7 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
 
   // Progress percentage
   const progressPercent = useMemo(() => {
-    return Math.round((Math.max(currentStep, 1) / 9) * 100);
+    return Math.round((Math.max(currentStep, 1) / 10) * 100);
   }, [currentStep]);
 
   // Navigation functions
@@ -129,11 +135,11 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
   // Validation
   const validateStep = useCallback(
     (step: number): string | null => {
-      if (step === 1 && !frontend) return translations.chooseFrontend as string;
-      if (step === 2 && !devLanguage) return translations.chooseLanguage as string;
-      if (step === 3 && !backend) return translations.chooseBackend as string;
-      if (step === 4 && !database) return translations.chooseDatabase as string;
-      if (step === 9) {
+      if (step === 2 && !frontend) return translations.chooseFrontend as string;
+      if (step === 3 && !devLanguage) return translations.chooseLanguage as string;
+      if (step === 4 && !backend) return translations.chooseBackend as string;
+      if (step === 5 && !database) return translations.chooseDatabase as string;
+      if (step === 10) {
         if (!clientName.trim()) return translations.enterName as string;
         if (!clientEmail.trim()) return translations.enterEmail as string;
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail.trim())) {
@@ -359,7 +365,7 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
       setValidationError(error);
       return;
     }
-    if (currentStep < 9) {
+    if (currentStep < 10) {
       goToStep(currentStep + 1);
       return;
     }
@@ -497,9 +503,9 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
         }),
       });
 
-      const result = await response.json();
+      const result = await response.json() as SaveQuoteResponse;
       if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to save');
+        throw new Error(result.message || result.error || 'Failed to save');
       }
 
       setSaveToDbSuccess(true);
@@ -508,7 +514,8 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
       return true;
     } catch (error) {
       console.error('Save to DB failed:', error);
-      window.alert('Failed to save to database. Please try again.');
+      const message = error instanceof Error ? error.message : 'Failed to save to database.';
+      window.alert(`${message}\n\nThe quote action will continue, but this request was not saved to the database.`);
       return false;
     } finally {
       setSaveToDbLoading(false);
@@ -522,47 +529,35 @@ export function useQuoteBuilder(options: UseQuoteBuilderOptions) {
     isSubmitting,
   ]);
 
-  // Download JSON with save to database first (only POST once, then just download)
+  // Download JSON with a database save attempt first (only POST once, then just download)
   const handleDownloadJSONWithSave = useCallback(async () => {
-    // If not yet submitted, save first
     if (!hasBeenSubmitted) {
-      const saved = await saveToDatabase();
-      if (!saved) return;
+      await saveToDatabase();
     }
-    // Always download (whether just saved or already saved)
     handleDownloadJSON();
   }, [saveToDatabase, handleDownloadJSON, hasBeenSubmitted]);
 
-  // Send on WhatsApp with save to database first (only POST once, then just send)
+  // Send on WhatsApp with a database save attempt first (only POST once, then just send)
   const handleWhatsAppWithSave = useCallback(async () => {
-    // If not yet submitted, save first
     if (!hasBeenSubmitted) {
-      const saved = await saveToDatabase();
-      if (!saved) return;
+      await saveToDatabase();
     }
-    // Always open WhatsApp (whether just saved or already saved)
     openWhatsApp();
   }, [saveToDatabase, openWhatsApp, hasBeenSubmitted]);
 
-  // Download PDF with save to database first (only POST once, then just download)
+  // Download PDF with a database save attempt first (only POST once, then just download)
   const handleDownloadPDFWithSave = useCallback(async () => {
-    // If not yet submitted, save first
     if (!hasBeenSubmitted) {
-      const saved = await saveToDatabase();
-      if (!saved) return;
+      await saveToDatabase();
     }
-    // Always download PDF (whether just saved or already saved)
     handleDownloadPDF();
   }, [saveToDatabase, handleDownloadPDF, hasBeenSubmitted]);
 
-  // Share with Dev+ with save to database first (only POST once, then just share)
+  // Share with Dev+ with a database save attempt first (only POST once, then just share)
   const handleShareWithDevWithSave = useCallback(async () => {
-    // If not yet submitted, save first
     if (!hasBeenSubmitted) {
-      const saved = await saveToDatabase();
-      if (!saved) return;
+      await saveToDatabase();
     }
-    // Always open WhatsApp (whether just saved or already saved)
     if (DEV_PHONE) {
       window.open(`https://wa.me/${DEV_PHONE}`, "_blank");
     }

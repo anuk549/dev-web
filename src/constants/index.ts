@@ -12,7 +12,7 @@ export const DEV_PHONE = normalizeWhatsAppNumber(
 
 export const LOGO_SRC = "/logo.jpg";
 
-export const STEPS = 10;
+export const STEPS = 11;
 
 export const FIELD_TYPES: FieldSpec["type"][] = [
   "String",
@@ -70,15 +70,16 @@ export const FEEDBACK_ITEMS: FeedbackItem[] = [
 ];
 
 export const STEP_ITEMS: StepItem[] = [
-  { idx: 1, label: "Frontend", icon: "ti-layout-dashboard" },
-  { idx: 2, label: "Language", icon: "ti-code" },
-  { idx: 3, label: "Backend", icon: "ti-server" },
-  { idx: 4, label: "Database", icon: "ti-database" },
-  { idx: 5, label: "Features", icon: "ti-shield-check" },
-  { idx: 6, label: "Schema", icon: "ti-table" },
-  { idx: 7, label: "Relations", icon: "ti-git-fork" },
-  { idx: 8, label: "Preview", icon: "ti-eye" },
-  { idx: 9, label: "Contact", icon: "ti-brand-whatsapp" },
+  { idx: 1, label: "Quick Start", icon: "ti-rocket" },
+  { idx: 2, label: "Frontend", icon: "ti-layout-dashboard" },
+  { idx: 3, label: "Language", icon: "ti-code" },
+  { idx: 4, label: "Backend", icon: "ti-server" },
+  { idx: 5, label: "Database", icon: "ti-database" },
+  { idx: 6, label: "Features", icon: "ti-shield-check" },
+  { idx: 7, label: "Schema", icon: "ti-table" },
+  { idx: 8, label: "Relations", icon: "ti-git-fork" },
+  { idx: 9, label: "Preview", icon: "ti-eye" },
+  { idx: 10, label: "Contact", icon: "ti-brand-whatsapp" },
 ];
 
 export const FRONTEND_OPTIONS: ChoiceItem[] = [
