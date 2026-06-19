@@ -30,6 +30,7 @@ function getStepTitle(step: number, t: typeof translations.en) {
 
 export default function Home() {
   const [appLanguage, setAppLanguage] = useState<"en" | "si">("en");
+  const [setupMode, setSetupMode] = useState<"quick" | "custom">("quick");
   const t = translations[appLanguage];
 
   const quoteBuilder = useQuoteBuilder({ translations: t });
@@ -96,6 +97,24 @@ export default function Home() {
     saveToDbSuccess,
     hasBeenSubmitted,
   } = quoteBuilder;
+
+  const handleWizardNext = () => {
+    if (currentStep === 1) {
+      if (setupMode === "quick") {
+        setFrontend("Next.js");
+        setDevLanguage("TypeScript");
+        setBackend("Next.js API");
+        setDatabase("MongoDB");
+        goToStep(6);
+        return;
+      }
+
+      goToStep(2);
+      return;
+    }
+
+    handleNext();
+  };
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-app-shell text-slate-950 selection:bg-teal-200/70">
@@ -223,20 +242,26 @@ export default function Home() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <button
                       type="button"
-                      onClick={() => {
-                        setFrontend("Next.js");
-                        setDevLanguage("TypeScript");
-                        setBackend("Next.js API");
-                        setDatabase("MongoDB");
-                        goToStep(6); // Skip to Features step
-                      }}
-                      className="option-card is-active text-left"
+                      onClick={() => setSetupMode("quick")}
+                      className={`option-card text-left ${setupMode === "quick" ? "is-active" : ""}`}
                     >
                       <span className="flex items-start justify-between gap-3">
-                        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-950 text-2xl text-white">
+                        <span
+                          className={`grid h-12 w-12 place-items-center rounded-2xl text-2xl ${
+                            setupMode === "quick"
+                              ? "bg-slate-950 text-white"
+                              : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
                           <i className="ti ti-rocket" />
                         </span>
-                        <span className="grid h-7 w-7 place-items-center rounded-full border border-teal-500 bg-teal-500 text-white">
+                        <span
+                          className={`grid h-7 w-7 place-items-center rounded-full border ${
+                            setupMode === "quick"
+                              ? "border-teal-500 bg-teal-500 text-white"
+                              : "border-slate-200 text-transparent"
+                          }`}
+                        >
                           <i className="ti ti-check text-sm" />
                         </span>
                       </span>
@@ -249,14 +274,26 @@ export default function Home() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => goToStep(2)}
-                      className="option-card text-left"
+                      onClick={() => setSetupMode("custom")}
+                      className={`option-card text-left ${setupMode === "custom" ? "is-active" : ""}`}
                     >
                       <span className="flex items-start justify-between gap-3">
-                        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-2xl text-slate-500">
+                        <span
+                          className={`grid h-12 w-12 place-items-center rounded-2xl text-2xl ${
+                            setupMode === "custom"
+                              ? "bg-slate-950 text-white"
+                              : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
                           <i className="ti ti-settings" />
                         </span>
-                        <span className="grid h-7 w-7 place-items-center rounded-full border border-slate-200 text-transparent">
+                        <span
+                          className={`grid h-7 w-7 place-items-center rounded-full border ${
+                            setupMode === "custom"
+                              ? "border-teal-500 bg-teal-500 text-white"
+                              : "border-slate-200 text-transparent"
+                          }`}
+                        >
                           <i className="ti ti-check text-sm" />
                         </span>
                       </span>
@@ -477,11 +514,11 @@ export default function Home() {
                     <i className="ti ti-arrow-left" /> {t.back}
                   </button>
                   {currentStep === 8 ? (
-                    <button type="button" onClick={handleNext} className="btn-primary">
+                    <button type="button" onClick={handleWizardNext} className="btn-primary">
                       <i className="ti ti-rocket" /> {t.compileQuote} <i className="ti ti-arrow-right" />
                     </button>
                   ) : (
-                    <button type="button" onClick={handleNext} className="btn-primary">
+                    <button type="button" onClick={handleWizardNext} className="btn-primary">
                       {t.next} <i className="ti ti-arrow-right" />
                     </button>
                   )}
