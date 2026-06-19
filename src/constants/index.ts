@@ -95,7 +95,6 @@ export const LANGUAGE_OPTIONS: ChoiceItem[] = [
 ];
 
 export const BACKEND_OPTIONS: ChoiceItem[] = [
-  { name: "Next.js API", sub: "One project with built-in route handlers", icon: "ti-brand-nextjs" },
   { name: "Node/Express", sub: "Custom REST API service", icon: "ti-brand-nodejs" },
   { name: "Spring Boot", sub: "Structured Java backend", icon: "ti-leaf" },
 ];

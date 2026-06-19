@@ -19,9 +19,9 @@
       "uiLibrary": "shadcn/ui"
     },
     "backend": {
-      "framework": "Next.js API Routes",
+      "framework": "Node/Express",
       "runtime": "Node.js",
-      "architecture": "Server-Side Rendering"
+      "architecture": "REST API"
     },
     "database": {
       "engine": "PostgreSQL",
@@ -298,13 +298,9 @@
   "recommendations": {
     "frontend": {
       "ifNextJsSelected": {
-        "backend": "Next.js API Routes",
-        "reason": "Seamless integration with Next.js, server-side rendering support, type-safe API routes, no need for separate backend server",
+        "backend": "Node/Express",
+        "reason": "Custom REST API service with Express.js, flexible middleware support, separate backend for better scalability",
         "alternatives": [
-          {
-            "option": "Express.js",
-            "useCase": "When you need more control over server configuration or have complex middleware requirements"
-          },
           {
             "option": "Fastify",
             "useCase": "When performance is critical and you need faster request handling"

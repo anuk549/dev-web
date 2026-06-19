@@ -56,7 +56,7 @@ The generated JSON includes:
       "language": "TypeScript"
     },
     "backend": {
-      "framework": "Next.js API",
+      "framework": "Node/Express",
       "runtime": "Node.js"
     },
     "database": {
