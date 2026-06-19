@@ -220,7 +220,7 @@ export default function Home() {
 
                 {/* Step 1: Quick Start */}
                 {currentStep === 1 && (
-                  <div className="grid gap-4 sm:grid-cols-2 max-w-2xl mx-auto">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -230,24 +230,42 @@ export default function Home() {
                         setDatabase("MongoDB");
                         goToStep(6); // Skip to Features step
                       }}
-                      className="btn-primary p-6 text-lg"
+                      className="option-card is-active text-left"
                     >
-                      <i className="ti ti-rocket text-2xl mb-2" />
-                      <div>Quick Start</div>
-                      <div className="text-sm font-normal opacity-80 mt-1">
+                      <span className="flex items-start justify-between gap-3">
+                        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-950 text-2xl text-white">
+                          <i className="ti ti-rocket" />
+                        </span>
+                        <span className="grid h-7 w-7 place-items-center rounded-full border border-teal-500 bg-teal-500 text-white">
+                          <i className="ti ti-check text-sm" />
+                        </span>
+                      </span>
+                      <span className="mt-6 block text-lg font-black text-slate-950">
+                        Quick Start
+                      </span>
+                      <span className="mt-2 block text-sm leading-6 text-slate-500">
                         Next.js + TypeScript + Next.js API + MongoDB
-                      </div>
+                      </span>
                     </button>
                     <button
                       type="button"
                       onClick={() => goToStep(2)}
-                      className="btn-secondary p-6 text-lg"
+                      className="option-card text-left"
                     >
-                      <i className="ti ti-settings text-2xl mb-2" />
-                      <div>Custom Setup</div>
-                      <div className="text-sm font-normal opacity-80 mt-1">
+                      <span className="flex items-start justify-between gap-3">
+                        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-2xl text-slate-500">
+                          <i className="ti ti-settings" />
+                        </span>
+                        <span className="grid h-7 w-7 place-items-center rounded-full border border-slate-200 text-transparent">
+                          <i className="ti ti-check text-sm" />
+                        </span>
+                      </span>
+                      <span className="mt-6 block text-lg font-black text-slate-950">
+                        Custom Setup
+                      </span>
+                      <span className="mt-2 block text-sm leading-6 text-slate-500">
                         Choose your own technologies
-                      </div>
+                      </span>
                     </button>
                     <div className="sm:col-span-2 text-center pt-2">
                       <p className="text-sm text-slate-500">
