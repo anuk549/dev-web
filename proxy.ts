@@ -6,7 +6,7 @@ const rateLimit = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX = 100; // max requests per window
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const response = NextResponse.next();
   // Get IP from headers (works with Vercel and other proxies)
   const forwardedFor = request.headers.get("x-forwarded-for");

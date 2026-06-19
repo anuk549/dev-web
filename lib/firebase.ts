@@ -1,5 +1,10 @@
-import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
-import { connectAuthEmulator, getAuth, type Auth } from "firebase/auth";
+/**
+ * Firebase Configuration
+ * Initialize Firebase services for the application
+ */
+
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -10,28 +15,23 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-let app: FirebaseApp;
-let auth: Auth;
+// Initialize Firebase
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-function getFirebaseApp() {
-  if (!app) {
-    app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-  }
-  return app;
+// Initialize Firebase Auth
+const auth = getAuth(app);
+
+// Connect to Auth Emulator in development
+if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_AUTH_EMULATOR) {
+  connectAuthEmulator(auth, "http://localhost:9099");
 }
 
-export function getFirebaseAuth() {
-  if (!auth) {
-    auth = getAuth(getFirebaseApp());
+export { app, auth };
 
-    if (
-      process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true" &&
-      typeof window !== "undefined"
-    ) {
-      connectAuthEmulator(auth, "http://127.0.0.1:9199", {
-        disableWarnings: true,
-      });
-    }
-  }
+export function getFirebaseAuth() {
   return auth;
+}
+
+export function getFirebaseApp() {
+  return app;
 }

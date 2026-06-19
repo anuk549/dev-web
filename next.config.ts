@@ -1,6 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Performance optimizations
+  compress: true,
+  
+  // Image optimization
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+  },
+
   // Security headers
   async headers() {
     return [
@@ -63,11 +77,15 @@ const nextConfig: NextConfig = {
             key: "X-DNS-Prefetch-Control",
             value: "on",
           },
-          // Cache Control for static assets
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
+          // Cache Control for static assets (only in production)
+          ...(process.env.NODE_ENV === "production"
+            ? [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=31536000, immutable",
+                },
+              ]
+            : []),
         ],
       },
     ];
