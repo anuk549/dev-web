@@ -233,7 +233,7 @@ export default function Home() {
                       className="btn-primary p-6 text-lg"
                     >
                       <i className="ti ti-rocket text-2xl mb-2" />
-                      <div>Use Default Stack</div>
+                      <div>Quick Start</div>
                       <div className="text-sm font-normal opacity-80 mt-1">
                         Next.js + TypeScript + Next.js API + MongoDB
                       </div>
