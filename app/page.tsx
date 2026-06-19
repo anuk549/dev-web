@@ -103,7 +103,7 @@ export default function Home() {
       if (setupMode === "quick") {
         setFrontend("Next.js");
         setDevLanguage("TypeScript");
-        setBackend("Next.js API");
+        setBackend("Node/Express");
         setDatabase("MongoDB");
         goToStep(6);
         return;
@@ -269,7 +269,7 @@ export default function Home() {
                         Quick Start
                       </span>
                       <span className="mt-2 block text-sm leading-6 text-slate-500">
-                        Next.js + TypeScript + Next.js API + MongoDB
+                        Next.js + TypeScript + Node/Express + MongoDB
                       </span>
                     </button>
                     <button
